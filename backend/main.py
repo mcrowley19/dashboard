@@ -11,6 +11,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from openfda import search_drugs, get_drug_info
 from gemini import generate_text
+from sample_data import SAMPLE_DATA
+
+
+
 
 app = FastAPI(
     title="Metricare API",
@@ -39,15 +43,16 @@ class SummaryRequest(BaseModel):
 
 @app.get("/patient/{patient_id}")
 def get_patient(patient_id: str):
+    patient_record = SAMPLE_DATA[patient_id]
     """
     Returns basic patient info.
     In production, replace this with a real DB lookup.
     """
     # Stub — swap in DB query here
     return {
-        "name": "John Doe",
-        "patientid": f"BIO-{patient_id}",
-        "patientDOB": "Jan 12, 1984",
+        "name": patient_record["name"],
+        "patientid": patient_record["patientid"],
+        "patientDOB": patient_record["patientDOB"],
     }
 
 
@@ -58,48 +63,10 @@ def get_patient_history(patient_id: str):
     Returns the patient's clinical history entries.
     Shape matches the HISTORY const the frontend expects.
     """
+    patient_record = SAMPLE_DATA[patient_id]
     # Stub — swap in DB query here
     return [
-        {
-            "type": "diagnostic",
-            "label": "Annual physical",
-            "date": "Jan 2025",
-            "items": [
-                "Routine exam, vitals WNL",
-                "CBC and metabolic panel ordered",
-                "Patient advised to continue diet and exercise",
-            ],
-        },
-        {
-            "type": "diagnostic",
-            "label": "Hypertension follow-up",
-            "date": "Nov 2024",
-            "items": [
-                "BP 132/82 on current regimen",
-                "Lisinopril dose maintained",
-                "Next check in 3 months",
-            ],
-        },
-        {
-            "type": "diagnostic",
-            "label": "Lab results",
-            "date": "Oct 2024",
-            "items": [
-                "HbA1c 5.8% (prediabetic range)",
-                "LDL 118 mg/dL",
-                "TSH 2.1 mIU/L",
-            ],
-        },
-        {
-            "type": "diagnostic",
-            "label": "Cardiology consult",
-            "date": "Aug 2024",
-            "items": [
-                "Echo showed mild LVH, EF 58%",
-                "Stress test negative for ischemia",
-                "Continue current cardiac meds",
-            ],
-        },
+        patient_record["patient_history"]
     ]
 
 
@@ -112,30 +79,10 @@ def get_patient_medications(patient_id: str):
     Uses drug names that exist in OpenFDA for lookups (e.g. contraindications).
     TODO: Populate `description` from OpenFDA drug label (purpose/indications) when implemented.
     """
+    patient_record = SAMPLE_DATA[patient_id]
     # Stub — swap in DB query here. Labels use OpenFDA-recognized names (brand or generic).
     return [
-        {
-            "type": "diagnostic",
-            "label": "Lisinopril",
-            "conflicts": [],
-            "items": ["10 mg once daily", "For hypertension"],
-            # TODO(OpenFDA): description = openfda.get_drug_description(label)  # e.g. purpose/indications
-            "description": None,
-        },
-        {
-            "type": "diagnostic",
-            "label": "Atorvastatin",
-            "conflicts": [],
-            "items": ["20 mg once daily at bedtime", "For LDL cholesterol"],
-            "description": None,
-        },
-        {
-            "type": "diagnostic",
-            "label": "Aspirin",
-            "conflicts": [],
-            "items": ["81 mg once daily", "Cardioprotective"],
-            "description": None,
-        },
+        patient_record["current_medications"]
     ]
 
 
@@ -147,14 +94,10 @@ def get_patient_family_history(patient_id: str):
     Returns the patient's family history (relatives and conditions).
     Shape matches the FAMILY_HISTORY const the frontend expects.
     """
+    patient_record = SAMPLE_DATA[patient_id]
     # Stub — swap in DB query here
     return [
-        {
-            "type": "diagnostic",
-            "label": "Oscar Wilde",
-            "relation": "Father",
-            "conditions": ["Heart disease", "Cancer", "plague"],
-        }
+       patient_record["family_history"]
     ]
 
 
