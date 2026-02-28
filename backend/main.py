@@ -241,21 +241,6 @@ Potential Contraindications / Interactions:
 
 
 
-@app.get("/drugs/search")
-async def drugs_search(q: str):
-    """Search FDA for drugs by brand name."""
-    return await search_drugs(q)
-
-
-@app.get("/drugs/{drug_name}")
-async def drug_info(drug_name: str):
-    """Get full FDA info for a specific drug."""
-    info = await get_drug_info(drug_name)
-    if "error" in info:
-        raise HTTPException(status_code=404, detail=info["error"])
-    return info
-
-
 
 
 @app.get("/")

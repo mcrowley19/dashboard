@@ -2,7 +2,6 @@ import os
 import json
 import re
 import google.generativeai as genai
-from typing import Optional
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
 
@@ -13,24 +12,16 @@ if GEMINI_API_KEY:
 # Use Gemini 2.5 Flash (override with GEMINI_MODEL env if needed)
 GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
 
+
 def generate_text(prompt: str, temperature: float = 0.7) -> str:
-    """
-    Generate text using Gemini API
-
-    Args:
-        prompt: The input prompt for text generation
-        temperature: Controls randomness (0.0 to 1.0)
-
-    Returns:
-        Generated text response
-    """
     if not GEMINI_API_KEY:
         return "Gemini API key not configured. Set GEMINI_API_KEY in environment."
-    model = genai.GenerativeModel(GEMINI_MODEL)
+    model = genai.GenerativeModel(
+        GEMINI_MODEL,
+        generation_config={"temperature": temperature},
+    )
     response = model.generate_content(prompt)
-    if not response.text:
-        return "No summary generated."
-    return response.text
+    return response.text or "No summary generated."
 
 
 def filter_contraindications(
@@ -71,9 +62,7 @@ FDA contraindication/warning entries (each line is [index] drug (severity): summ
 Reply with a JSON array of indices to KEEP, e.g. [0, 2, 4]. If none are relevant, reply []. No other text."""
 
     try:
-        model = genai.GenerativeModel(GEMINI_MODEL)
-        response = model.generate_content(prompt)
-        text = (response.text or "").strip()
+        text = generate_text(prompt, temperature=0.0).strip()
         json_match = re.search(r"\[[\d,\s]*\]", text)
         if json_match:
             indices = json.loads(json_match.group())
@@ -99,11 +88,9 @@ def summarize_contraindications_for_display(
     if not filtered_results or not GEMINI_API_KEY:
         return filtered_results
 
-    # Build context for each entry
     entries_desc = []
     for i, r in enumerate(filtered_results):
-        raw_items = r.get("items") or []
-        raw_blob = " ".join(raw_items)[:1500]
+        raw_blob = " ".join(r.get("items") or [])[:1500]
         entries_desc.append(f"[{i}] {r.get('label', '')} (severity: {r.get('severity', '')})\nRaw FDA text: {raw_blob}")
 
     prompt = f"""You are a clinical assistant. For each drug below, based on the patient's medications and the raw FDA text, output a doctor-friendly summary AND a severity level.
@@ -123,16 +110,14 @@ Drug entries (index, label, raw FDA text):
 Rules:
 - If there are NO relevant interaction or contraindication risks for this patient, output for that drug a single sentence: "No significant drug interaction risks for this patient." and set severity to "LOW".
 - If there ARE relevant risks, output 1–4 short, clear bullet points outlining them (e.g. "Grapefruit juice may increase drug levels; avoid or limit." "Monitor for muscle pain if taken with gemfibrozil."). Do NOT repeat the FDA boilerplate like "7 DRUG INTERACTIONS See full prescribing information"; only state the actual risks in plain language.
-- Severity must be one of: "SEVERE" (life-threatening, fatal, or contraindicated risks), "MODERATE" (risks requiring monitoring or dose adjustment), "LOW" (minor or no relevant risks).
+- Severity must be one of: "SEVERE" (life-threatening, fatal risks), "MODERATE" (risks requiring monitoring or dose adjustment), "LOW" (minor or no relevant risks).
 
 Reply with a JSON object keyed by index (e.g. "0", "1") where each value has "severity" (string) and "items" (array of 1–4 strings). Example:
 {{"0": {{"severity": "LOW", "items": ["No significant drug interaction risks for this patient."]}}, "1": {{"severity": "MODERATE", "items": ["Avoid grapefruit juice (increases drug levels).", "Monitor for myopathy if taken with gemfibrozil."]}}}}
 No other text."""
 
     try:
-        model = genai.GenerativeModel(GEMINI_MODEL)
-        response = model.generate_content(prompt)
-        text = (response.text or "").strip()
+        text = generate_text(prompt, temperature=0.0).strip()
         if "```" in text:
             for part in text.split("```"):
                 part = part.strip()
@@ -146,8 +131,7 @@ No other text."""
         if isinstance(parsed, dict):
             out = []
             for i, r in enumerate(filtered_results):
-                key = str(i)
-                entry = parsed.get(key)
+                entry = parsed.get(str(i))
                 if isinstance(entry, dict):
                     new_items = entry.get("items")
                     new_severity = entry.get("severity", "").upper()
@@ -157,9 +141,9 @@ No other text."""
                         new_severity = r.get("severity", "LOW")
                     out.append({**r, "items": new_items, "severity": new_severity})
                 else:
-                    out.append({**r, "items": ["No significant drug interaction risks for this patient."], "severity": new_severity})
+                    out.append({**r, "items": ["No significant drug interaction risks for this patient."], "severity": "LOW"})
             return out
-    except (json.JSONDecodeError, Exception):
+    except Exception:
         pass
     # Fallback: replace items with a single generic line so we don't show raw FDA boilerplate
     return [
@@ -171,20 +155,3 @@ No other text."""
         }
         for r in filtered_results
     ]
-
-
-async def chat(message: str, conversation_history: Optional[list] = None) -> str:
-    """
-    Chat with Gemini API
-
-    Args:
-        message: User message
-        conversation_history: Optional list of previous messages
-
-    Returns:
-        Gemini's response
-    """
-    model = genai.GenerativeModel(GEMINI_MODEL)
-    chat_session = model.start_chat(history=conversation_history or [])
-    response = chat_session.send_message(message)
-    return response.text or ""
