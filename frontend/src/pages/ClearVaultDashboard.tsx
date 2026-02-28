@@ -7,7 +7,7 @@ import NextStepsCard from '../sections/NextStepsCard'
 import HippocampalVolumeCard from '../sections/HippocampalVolumeCard'
 import GrayMatterCard from '../sections/GrayMatterCard'
 
-export default function BioSyncDashboard() {
+export default function ClearVaultDashboard() {
   return (
     <div className="min-h-screen bg-gray-50" style={{ fontFamily: "'DM Sans', sans-serif" }}>
       <Navbar />
