@@ -73,4 +73,112 @@ for entry in bundle.get("entry", []):
                     if coding.get("display"):
                         family_history.append(coding["display"])
 
-print(resource)
+""""
+Sample response from this API
+{
+  "resourceType": "Bundle",
+  "id": "bundle-12345",
+  "type": "searchset",
+  "total": 4,
+  "entry": [
+    {
+      "fullUrl": "https://www.iehr.ai/fhir/ie/core/Patient/123",
+      "resource": {
+        "resourceType": "Patient",
+        "id": "123",
+        "name": [
+          {
+            "use": "official",
+            "family": "O'Brien",
+            "given": ["Sean", "Patrick"]
+          }
+        ],
+        "gender": "male",
+        "birthDate": "1980-05-12"
+      }
+    },
+    {
+      "fullUrl": "https://www.iehr.ai/fhir/ie/core/Condition/456",
+      "resource": {
+        "resourceType": "Condition",
+        "id": "456",
+        "subject": {
+          "reference": "Patient/123"
+        },
+        "code": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "code": "44054006",
+              "display": "Diabetes mellitus type 2"
+            }
+          ],
+          "text": "Type 2 Diabetes"
+        },
+        "clinicalStatus": {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/condition-clinical",
+              "code": "active"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "fullUrl": "https://www.iehr.ai/fhir/ie/core/MedicationStatement/789",
+      "resource": {
+        "resourceType": "MedicationStatement",
+        "id": "789",
+        "subject": {
+          "reference": "Patient/123"
+        },
+        "status": "active",
+        "medicationCodeableConcept": {
+          "coding": [
+            {
+              "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+              "code": "860975",
+              "display": "Metformin 500mg Tablet"
+            }
+          ],
+          "text": "Metformin 500mg Tablet"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://www.iehr.ai/fhir/ie/core/FamilyMemberHistory/321",
+      "resource": {
+        "resourceType": "FamilyMemberHistory",
+        "id": "321",
+        "patient": {
+          "reference": "Patient/123"
+        },
+        "relationship": {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/v3-RoleCode",
+              "code": "FTH",
+              "display": "Father"
+            }
+          ]
+        },
+        "condition": [
+          {
+            "code": {
+              "coding": [
+                {
+                  "system": "http://snomed.info/sct",
+                  "code": "38341003",
+                  "display": "Myocardial infarction"
+                }
+              ],
+              "text": "Heart attack"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
+"""
