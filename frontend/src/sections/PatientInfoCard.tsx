@@ -1,12 +1,4 @@
-export default function HistorySummaryCard() {
-  const INFO = [
-    {
-      type: "diagnostic" as const,
-      name: "Went to Roscommon",
-      patientid: "Jan 2025",
-      patientDOB: "Jan 12 1984",
-    },
-  ];
+export default function PatientInfoCard() {
   return (
     <div className="bg-white border-b border-slate-100 px-8 py-3">
       <div className="max-w-[1400px] mx-auto flex items-center justify-between">
