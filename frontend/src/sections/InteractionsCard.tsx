@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react";
-import { fetchContraindications, type ContraindicationEntry } from "../api/client";
+import {
+  fetchContraindications,
+  type ContraindicationEntry,
+} from "../api/client";
 
 const SEVERITY_BADGE: Record<string, string> = {
   SEVERE: "bg-red-50 text-red-600 border border-red-100",
@@ -8,7 +11,9 @@ const SEVERITY_BADGE: Record<string, string> = {
 };
 
 export default function InteractionsCard({ patientId }: { patientId: string }) {
-  const [contraindications, setContraindications] = useState<ContraindicationEntry[]>([]);
+  const [contraindications, setContraindications] = useState<
+    ContraindicationEntry[]
+  >([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -19,7 +24,9 @@ export default function InteractionsCard({ patientId }: { patientId: string }) {
     fetchContraindications(patientId)
       .then(setContraindications)
       .catch((e) =>
-        setError(e instanceof Error ? e.message : "Failed to load contraindications")
+        setError(
+          e instanceof Error ? e.message : "Failed to load interactions",
+        ),
       )
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -35,18 +42,18 @@ export default function InteractionsCard({ patientId }: { patientId: string }) {
       style={{
         height: 380,
         boxShadow:
-          "inset 4px 0 0 #F59E0B, 0 1px 3px 0 rgba(0,0,0,0.06), 0 1px 2px -1px rgba(0,0,0,0.04)",
+          "inset 4px 0 0 #f50b0bff, 0 1px 3px 0 rgba(0,0,0,0.06), 0 1px 2px -1px rgba(0,0,0,0.04)",
       }}
     >
       {/* Header */}
-      <div className="px-5 pt-4 pb-3 shrink-0 border-b border-slate-50 flex items-center gap-2.5">
+      <div className="px-5 pt-4 pb-3 shrink-0 border-slate-50 flex items-center gap-2.5">
         <div className="w-7 h-7 rounded-lg bg-amber-50 flex items-center justify-center shrink-0">
           <svg
             width="14"
             height="14"
             viewBox="0 0 24 24"
             fill="none"
-            stroke="#F59E0B"
+            stroke="#f50b0bff"
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -57,7 +64,7 @@ export default function InteractionsCard({ patientId }: { patientId: string }) {
           </svg>
         </div>
         <h3 className="text-slate-800 text-sm font-semibold tracking-tight">
-          Potential Contraindications
+          Potential Drug interactions
         </h3>
       </div>
 
@@ -70,7 +77,9 @@ export default function InteractionsCard({ patientId }: { patientId: string }) {
         )}
         {error && <div className="text-xs text-red-600">{error}</div>}
         {!loading && !error && contraindications.length === 0 && (
-          <div className="text-xs text-slate-400">No contraindications on file.</div>
+          <div className="text-xs text-slate-400">
+            No drug interactions on file.
+          </div>
         )}
         {!loading &&
           !error &&
@@ -78,7 +87,9 @@ export default function InteractionsCard({ patientId }: { patientId: string }) {
             <div key={`${label}-${i}`} className="flex gap-3">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1.5">
-                  <span className="text-xs font-semibold text-slate-800">{label}</span>
+                  <span className="text-xs font-semibold text-slate-800">
+                    {label}
+                  </span>
                   {severity && (
                     <span
                       className={`text-[10px] rounded-full px-2 py-0.5 font-semibold ${

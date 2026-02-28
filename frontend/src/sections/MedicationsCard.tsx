@@ -12,7 +12,9 @@ export default function MedicationsCard({ patientId }: { patientId: string }) {
     setError(null);
     fetchPatientMedications(patientId)
       .then(setMedications)
-      .catch((e) => setError(e instanceof Error ? e.message : "Failed to load medications"))
+      .catch((e) =>
+        setError(e instanceof Error ? e.message : "Failed to load medications"),
+      )
       .finally(() => {
         if (!cancelled) setLoading(false);
       });
@@ -31,7 +33,7 @@ export default function MedicationsCard({ patientId }: { patientId: string }) {
       }}
     >
       {/* Header */}
-      <div className="px-5 pt-4 pb-3 shrink-0 border-b border-slate-50 flex items-center gap-2.5">
+      <div className="px-5 pt-4 pb-3 shrink-0 border-slate-50 flex items-center gap-2.5">
         <div className="w-7 h-7 rounded-lg bg-teal-50 flex items-center justify-center shrink-0">
           <svg
             width="14"
@@ -69,7 +71,9 @@ export default function MedicationsCard({ patientId }: { patientId: string }) {
             <div key={`${label}-${i}`} className="flex gap-3">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1.5">
-                  <span className="text-xs font-semibold text-slate-800">{label}</span>
+                  <span className="text-xs font-semibold text-slate-800">
+                    {label}
+                  </span>
                 </div>
                 <ul className="text-[11px] text-slate-400 space-y-0.5 list-disc list-inside">
                   {(items ?? []).map((item) => (

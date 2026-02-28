@@ -1,7 +1,14 @@
 import { useEffect, useState } from "react";
-import { fetchPatientFamilyHistory, type FamilyHistoryEntry } from "../api/client";
+import {
+  fetchPatientFamilyHistory,
+  type FamilyHistoryEntry,
+} from "../api/client";
 
-export default function FamilyHistoryCard({ patientId }: { patientId: string }) {
+export default function FamilyHistoryCard({
+  patientId,
+}: {
+  patientId: string;
+}) {
   const [familyHistory, setFamilyHistory] = useState<FamilyHistoryEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -12,11 +19,17 @@ export default function FamilyHistoryCard({ patientId }: { patientId: string }) 
     setError(null);
     fetchPatientFamilyHistory(patientId)
       .then(setFamilyHistory)
-      .catch((e) => setError(e instanceof Error ? e.message : "Failed to load family history"))
+      .catch((e) =>
+        setError(
+          e instanceof Error ? e.message : "Failed to load family history",
+        ),
+      )
       .finally(() => {
         if (!cancelled) setLoading(false);
       });
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [patientId]);
 
   return (
@@ -25,11 +38,11 @@ export default function FamilyHistoryCard({ patientId }: { patientId: string }) 
       style={{
         height: 380,
         boxShadow:
-          "inset 4px 0 0 #14B8A6, 0 1px 3px 0 rgba(0,0,0,0.06), 0 1px 2px -1px rgba(0,0,0,0.04)",
+          "inset 4px 0 0 #b8148aff, 0 1px 3px 0 rgba(0,0,0,0.06), 0 1px 2px -1px rgba(0,0,0,0.04)",
       }}
     >
       {/* Header */}
-      <div className="px-5 pt-4 pb-3 shrink-0 border-b border-slate-50 flex items-center gap-2.5">
+      <div className="px-5 pt-4 pb-3 shrink-0  border-slate-50 flex items-center gap-2.5">
         <div className="w-7 h-7 rounded-lg bg-teal-50 flex items-center justify-center shrink-0">
           <svg
             width="14"
@@ -41,8 +54,8 @@ export default function FamilyHistoryCard({ patientId }: { patientId: string }) 
             strokeLinecap="round"
             strokeLinejoin="round"
           >
-            <path d="M10.5 1.5C8.01 1.5 6 3.51 6 6v12c0 2.49 2.01 4.5 4.5 4.5S15 20.49 15 18V6c0-2.49-2.01-4.5-4.5-4.5z" />
-            <line x1="6" y1="12" x2="15" y2="12" />
+            <circle cx="12" cy="7" r="4" />
+            <path d="M5 21v-1a7 7 0 0 1 14 0v1" />
           </svg>
         </div>
         <h3 className="text-slate-800 text-sm font-semibold tracking-tight">
@@ -58,23 +71,29 @@ export default function FamilyHistoryCard({ patientId }: { patientId: string }) 
           </div>
         )}
         {error && <div className="text-xs text-red-600">{error}</div>}
-        {!loading && !error && familyHistory.map(({ label, relation, conditions }) => (
-          <div key={label} className="flex gap-3">
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-1.5">
-                <span className="text-xs font-semibold text-slate-800">{label}</span>
+        {!loading &&
+          !error &&
+          familyHistory.map(({ label, relation, conditions }) => (
+            <div key={label} className="flex gap-3">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1.5">
+                  <span className="text-xs font-semibold text-slate-800">
+                    {label}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2 mb-1.5">
+                  <span className="text-xs font-semibold text-slate-800">
+                    {relation}
+                  </span>
+                </div>
+                <ul className="text-[11px] text-slate-400 space-y-0.5 list-disc list-inside">
+                  {(conditions ?? []).map((condition) => (
+                    <li key={condition}>{condition}</li>
+                  ))}
+                </ul>
               </div>
-              <div className="flex items-center gap-2 mb-1.5">
-                <span className="text-xs font-semibold text-slate-800">{relation}</span>
-              </div>
-              <ul className="text-[11px] text-slate-400 space-y-0.5 list-disc list-inside">
-                {(conditions ?? []).map((condition) => (
-                  <li key={condition}>{condition}</li>
-                ))}
-              </ul>
             </div>
-          </div>
-        ))}
+          ))}
       </div>
     </div>
   );

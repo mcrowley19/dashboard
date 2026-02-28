@@ -8,7 +8,8 @@ function SummaryWithBold({ text }: { text: string }) {
   let match;
   const parts: { type: "normal" | "bold" | "severe"; text: string }[] = [];
   while ((match = partRegex.exec(text)) !== null) {
-    if (match.index > pos) parts.push({ type: "normal", text: text.slice(pos, match.index) });
+    if (match.index > pos)
+      parts.push({ type: "normal", text: text.slice(pos, match.index) });
     if (match[1] !== undefined) {
       parts.push({ type: "severe", text: match[1] });
     } else {
@@ -39,7 +40,11 @@ function SummaryWithBold({ text }: { text: string }) {
   );
 }
 
-export default function HistorySummaryCard({ patientId }: { patientId: string }) {
+export default function HistorySummaryCard({
+  patientId,
+}: {
+  patientId: string;
+}) {
   const [items, setItems] = useState<SummaryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -53,7 +58,8 @@ export default function HistorySummaryCard({ patientId }: { patientId: string })
         if (!cancelled) setItems(data);
       })
       .catch((e) => {
-        if (!cancelled) setError(e instanceof Error ? e.message : "Failed to load summary");
+        if (!cancelled)
+          setError(e instanceof Error ? e.message : "Failed to load summary");
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -73,7 +79,7 @@ export default function HistorySummaryCard({ patientId }: { patientId: string })
       }}
     >
       {/* Header */}
-      <div className="px-5 pt-4 pb-3 shrink-0 border-b border-slate-50 flex items-center gap-2.5">
+      <div className="px-5 pt-4 pb-3 shrink-0 border-slate-50 flex items-center gap-2.5">
         <div className="w-7 h-7 rounded-lg bg-indigo-50 flex items-center justify-center shrink-0">
           <svg
             width="14"
@@ -106,22 +112,21 @@ export default function HistorySummaryCard({ patientId }: { patientId: string })
             Generating summary…
           </div>
         )}
-        {error && (
-          <div className="text-xs text-red-600">
-            {error}
-          </div>
-        )}
+        {error && <div className="text-xs text-red-600">{error}</div>}
         {!loading && !error && items.length === 0 && (
           <div className="text-xs text-slate-400">No summary available.</div>
         )}
-        {!loading && !error && items.length > 0 && items.map(({ summary }, i) => (
-          <div
-            key={i}
-            className="text-xs text-slate-500 break-words leading-relaxed"
-          >
-            {summary && <SummaryWithBold text={summary} />}
-          </div>
-        ))}
+        {!loading &&
+          !error &&
+          items.length > 0 &&
+          items.map(({ summary }, i) => (
+            <div
+              key={i}
+              className="text-xs text-slate-500 break-words leading-relaxed"
+            >
+              {summary && <SummaryWithBold text={summary} />}
+            </div>
+          ))}
       </div>
     </div>
   );
