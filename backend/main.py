@@ -11,7 +11,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from openfda import search_drugs, get_drug_info
-from gemini import generate_text, filter_contraindications, summarize_contraindications_for_display
+from gemini import generate_text, filter_and_summarize_contraindications, summarize_contraindications_for_display
 from sample_data import sample_data
 
 
@@ -152,20 +152,12 @@ async def get_contraindications(patient_id: str):
 
     try:
         results = await asyncio.to_thread(
-            filter_contraindications,
+            filter_and_summarize_contraindications,
             patient["name"],
             medication_names,
             history_text,
             family_text,
             raw_results,
-        )
-        results = await asyncio.to_thread(
-            summarize_contraindications_for_display,
-            patient["name"],
-            medication_names,
-            history_text,
-            family_text,
-            results,
         )
     except Exception:
         results = raw_results

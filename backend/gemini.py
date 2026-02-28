@@ -9,8 +9,8 @@ GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
 if GEMINI_API_KEY:
     genai.configure(api_key=GEMINI_API_KEY)
 
-# Use Gemini 2.5 Flash (override with GEMINI_MODEL env if needed)
-GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
+# Use Gemini 3 Flash preview (override with GEMINI_MODEL env). If you get model errors, set GEMINI_MODEL=gemini-2.5-flash
+GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-3-flash-preview")
 
 
 def generate_text(prompt: str, temperature: float = 0.7) -> str:
@@ -69,6 +69,83 @@ Reply with a JSON array of indices to KEEP, e.g. [0, 2, 4]. If none are relevant
             if isinstance(indices, list) and all(isinstance(i, int) for i in indices):
                 return [raw_results[i] for i in indices if 0 <= i < len(raw_results)]
     except Exception:
+        pass
+    return raw_results
+
+
+def filter_and_summarize_contraindications(
+    patient_name: str,
+    medication_names: list[str],
+    history_text: str,
+    family_text: str,
+    raw_results: list[dict],
+) -> list[dict]:
+    """
+    Single Gemini call: filter to relevant entries and summarize for display.
+    Faster than filter_contraindications + summarize_contraindications_for_display (one round-trip instead of two).
+    """
+    if not raw_results or not GEMINI_API_KEY:
+        return raw_results
+
+    entries_text = "\n".join(
+        f"[{i}] {r.get('label', '')} (severity: {r.get('severity', '')}): "
+        + "; ".join((r.get("items") or [])[:3])
+        for i, r in enumerate(raw_results)
+    )
+
+    prompt = f"""You are a clinical assistant. For this patient, (1) consider which FDA entries are RELEVANT (e.g. omit drug-drug when they don't take both; omit irrelevant conditions), and (2) for each RELEVANT entry output a short doctor-friendly summary and severity.
+
+Patient: {patient_name}
+Medications: {", ".join(medication_names)}
+
+Clinical history:
+{history_text or "(none)"}
+
+Family history:
+{family_text or "(none)"}
+
+FDA entries (index, drug, severity, excerpt):
+{entries_text}
+
+Rules:
+- Include only entries that are relevant for this patient. Skip irrelevant ones.
+- For each included entry output "severity" (SEVERE, MODERATE, or LOW) and "items" (1–4 short bullet points in plain language; no FDA boilerplate). If no relevant risks: severity "LOW", items: ["No significant drug interaction risks for this patient."]
+- Reply with a JSON object keyed by the original index as string (e.g. "0", "2"). Each value: {{"severity": "...", "items": ["..."]}}. Only include indices you keep. Example: {{"0": {{"severity": "LOW", "items": ["No significant drug interaction risks for this patient."]}}, "1": {{"severity": "MODERATE", "items": ["Avoid grapefruit juice.", "Monitor for myopathy with gemfibrozil."]}}}}
+No other text."""
+
+    try:
+        model = genai.GenerativeModel(GEMINI_MODEL)
+        response = model.generate_content(prompt)
+        text = (response.text or "").strip()
+        if "```" in text:
+            for part in text.split("```"):
+                part = part.strip()
+                if part.startswith("json"):
+                    part = part[4:].strip()
+                if part.startswith("{"):
+                    text = part
+                    break
+        parsed = json.loads(text)
+        valid_severities = {"SEVERE", "MODERATE", "LOW"}
+        if isinstance(parsed, dict):
+            out = []
+            for i, r in enumerate(raw_results):
+                key = str(i)
+                if key not in parsed:
+                    continue
+                entry = parsed[key]
+                if not isinstance(entry, dict):
+                    continue
+                new_severity = (entry.get("severity") or "LOW").upper()
+                if new_severity not in valid_severities:
+                    new_severity = "LOW"
+                new_items = entry.get("items")
+                if not isinstance(new_items, list) or not all(isinstance(s, str) for s in new_items):
+                    new_items = ["No significant drug interaction risks for this patient."]
+                out.append({**r, "severity": new_severity, "items": new_items})
+            if out:
+                return out
+    except (json.JSONDecodeError, Exception):
         pass
     return raw_results
 
