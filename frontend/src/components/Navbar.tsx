@@ -1,83 +1,5 @@
 import { useState } from "react";
-
-const NAV_ITEMS = [
-  {
-    label: "Home",
-    icon: (
-      <svg
-        width="14"
-        height="14"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      >
-        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-        <polyline points="9 22 9 12 15 12 15 22" />
-      </svg>
-    ),
-  },
-  {
-    label: "Documents",
-    icon: (
-      <svg
-        width="14"
-        height="14"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      >
-        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-        <polyline points="14 2 14 8 20 8" />
-        <line x1="16" y1="13" x2="8" y2="13" />
-        <line x1="16" y1="17" x2="8" y2="17" />
-      </svg>
-    ),
-  },
-  {
-    label: "Analytics",
-    icon: (
-      <svg
-        width="14"
-        height="14"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      >
-        <line x1="18" y1="20" x2="18" y2="10" />
-        <line x1="12" y1="20" x2="12" y2="4" />
-        <line x1="6" y1="20" x2="6" y2="14" />
-      </svg>
-    ),
-  },
-  {
-    label: "Database",
-    icon: (
-      <svg
-        width="14"
-        height="14"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      >
-        <ellipse cx="12" cy="5" rx="9" ry="3" />
-        <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3" />
-        <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5" />
-      </svg>
-    ),
-  },
-];
+import { Link } from "react-router-dom";
 
 // Mock patient data for search
 const PATIENTS = [
@@ -102,7 +24,7 @@ const PATIENTS = [
   },
 ];
 
-export default function Navbar({ activeTab = "Analytics" }) {
+export default function Navbar() {
   const [currentPatient, setCurrentPatient] = useState(PATIENTS[0]);
   const [query, setQuery] = useState("");
   const [showResults, setShowResults] = useState(false);
@@ -119,7 +41,11 @@ export default function Navbar({ activeTab = "Analytics" }) {
     <nav className="flex items-center justify-between px-6 py-2.5 bg-white border-b border-slate-200">
       <div className="flex items-center gap-8">
         {/* Brand */}
-        <div className="flex items-center gap-2.5">
+        <Link
+          to="/"
+          className="flex items-center gap-2.5 hover:opacity-80 transition-opacity"
+          aria-label="Metricare home"
+        >
           <div className="w-8 h-8 rounded-lg bg-emerald-50 border border-emerald-200 flex items-center justify-center">
             <svg
               width="16"
@@ -137,43 +63,10 @@ export default function Navbar({ activeTab = "Analytics" }) {
           </div>
           <div className="flex items-center gap-1.5">
             <span className="text-[15px] font-semibold text-slate-800 tracking-tight">
-              BioSync
+              Metricare
             </span>
           </div>
-        </div>
-
-        {/* Divider */}
-        <div className="w-px h-5 bg-slate-200" />
-
-        {/* Navigation tabs */}
-        <div className="flex items-center gap-0.5">
-          {NAV_ITEMS.map(({ label, icon }) => {
-            const isActive = label === activeTab;
-            return (
-              <button
-                key={label}
-                className={`
-                  group relative flex items-center gap-2 px-4 py-2 rounded-lg text-[13px] font-medium transition-all duration-200
-                  ${
-                    isActive
-                      ? "text-slate-800 bg-slate-100 border border-slate-200"
-                      : "text-slate-400 border border-transparent hover:text-slate-600 hover:bg-slate-50"
-                  }
-                `}
-              >
-                <span
-                  className={`transition-colors ${isActive ? "text-emerald-500" : "text-slate-300 group-hover:text-slate-400"}`}
-                >
-                  {icon}
-                </span>
-                {label}
-                {isActive && (
-                  <div className="absolute inset-x-3 -bottom-[13px] h-px bg-gradient-to-r from-transparent via-emerald-400 to-transparent" />
-                )}
-              </button>
-            );
-          })}
-        </div>
+        </Link>
       </div>
 
       {/* Right side */}
