@@ -52,7 +52,6 @@ def _initials(name: str) -> str:
 
 @app.get("/patients")
 def list_patients():
-    """Returns patients from sample_data only (regulated format)."""
     out = []
     for pid, p in sample_data.items():
         name = p.get("name") or "Unknown"
@@ -64,7 +63,6 @@ def list_patients():
 
 @app.get("/patient/{patient_id}")
 def get_patient(patient_id: str):
-    """Returns basic patient info from sample_data only; otherwise stub."""
     if patient_id in sample_data:
         p = sample_data[patient_id]
         return {
@@ -78,7 +76,6 @@ def get_patient(patient_id: str):
 
 @app.get("/patient/{patient_id}/history")
 def get_patient_history(patient_id: str):
-    """Returns the patient's clinical history from sample_data only."""
     if patient_id in sample_data:
         return sample_data[patient_id].get("patient_history", [])
     return []
@@ -87,7 +84,6 @@ def get_patient_history(patient_id: str):
 
 @app.get("/patient/{patient_id}/medications")
 def get_patient_medications(patient_id: str):
-    """Returns the patient's current medications from sample_data only."""
     if patient_id in sample_data:
         return sample_data[patient_id].get("current_medications", [])
     return []
@@ -97,7 +93,6 @@ def get_patient_medications(patient_id: str):
 
 @app.get("/patient/{patient_id}/family_history")
 def get_patient_family_history(patient_id: str):
-    """Returns the patient's family history from sample_data only."""
     if patient_id in sample_data:
         return sample_data[patient_id].get("family_history", [])
     return []
@@ -110,7 +105,6 @@ async def get_contraindications(patient_id: str):
     """
     Pulls the patient's medications, looks up each one in the OpenFDA API,
     then uses Gemini to return only contraindications relevant for this patient.
-    Shape matches the INTERACTIONS const the frontend expects.
     """
     patient = get_patient(patient_id)
     medications = get_patient_medications(patient_id)
@@ -145,21 +139,13 @@ async def get_contraindications(patient_id: str):
         interactions = info.get("interactions", ["N/A"])
         warnings = info.get("warnings", ["N/A"])
 
-        warning_text = " ".join(warnings).lower()
-        if any(w in warning_text for w in ["death", "fatal", "severe", "life-threatening"]):
-            severity = "SEVERE"
-        elif any(w in warning_text for w in ["caution", "avoid", "risk", "monitor"]):
-            severity = "MODERATE"
-        else:
-            severity = "LOW"
-
         items = interactions if interactions != ["N/A"] else warnings
         items = [i[:200] for i in items]
 
         raw_results.append({
             "type": "diagnostic",
             "label": drug_name,
-            "severity": severity,
+            "severity": "UNKNOWN",
             "items": items,
             "description": None,
         })
@@ -198,7 +184,6 @@ async def generate_patient_summary(request: SummaryRequest):
     Sends patient history, medications, family history, and contraindications
     to Gemini and returns an AI summary that considers all of these.
     Identifies follow-ups/visits due now and returns them bolded (**text**) in the summary.
-    Shape matches the SUMMARY const the frontend expects.
     """
     now = datetime.now(timezone.utc)
     current_date_time = now.strftime("%B %d, %Y")  # e.g. February 28, 2025

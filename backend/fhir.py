@@ -1,36 +1,5 @@
 import requests
 
-# Known FHIR patient IDs (from iehr.ai); used for patient list and to decide when to call FHIR.
-FHIR_PATIENT_IDS = ["001", "002", "003", "004", "005", "006", "007", "008", "009", "010"]
-
-# Static list for GET /patients dropdown (names/DOB from API docs). IDs must match FHIR server.
-FHIR_PATIENT_LIST = [
-    {"id": "001", "name": "Sean O'Brien", "dob": "1980-05-12"},
-    {"id": "002", "name": "Mary Murphy", "dob": "1965-11-23"},
-    {"id": "003", "name": "Conor Walsh", "dob": "1992-03-07"},
-    {"id": "004", "name": "Margaret Kelly", "dob": "1955-08-19"},
-    {"id": "005", "name": "Aoife Ryan", "dob": "2001-06-14"},
-    {"id": "006", "name": "Declan Byrne", "dob": "1978-01-30"},
-    {"id": "007", "name": "Sinead Doyle", "dob": "1988-09-05"},
-    {"id": "008", "name": "Patrick Fitzgerald", "dob": "1945-12-02"},
-    {"id": "009", "name": "Ciara Brennan", "dob": "1999-04-22"},
-    {"id": "010", "name": "Brian O'Connor", "dob": "1970-07-16"},
-]
-
-
-def get_fhir_patient_list():
-    """Returns the list of FHIR patients for the frontend (id, name, dob, initials)."""
-    out = []
-    for p in FHIR_PATIENT_LIST:
-        name = p["name"]
-        parts = name.strip().split()
-        if len(parts) >= 2:
-            initials = (parts[0][0] + parts[-1][0]).upper()
-        else:
-            initials = (parts[0][:2] if parts else "?").upper()
-        out.append({"id": p["id"], "name": name, "dob": p["dob"], "initials": initials})
-    return out
-
 
 def get_patient_info(patient_id):
     BASE_URL = "https://www.iehr.ai/fhir/ie/core"

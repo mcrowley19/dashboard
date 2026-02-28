@@ -106,7 +106,7 @@ def summarize_contraindications_for_display(
         raw_blob = " ".join(raw_items)[:1500]
         entries_desc.append(f"[{i}] {r.get('label', '')} (severity: {r.get('severity', '')})\nRaw FDA text: {raw_blob}")
 
-    prompt = f"""You are a clinical assistant. For each drug below, based on the patient's medications and the raw FDA text, output a doctor-friendly summary.
+    prompt = f"""You are a clinical assistant. For each drug below, based on the patient's medications and the raw FDA text, output a doctor-friendly summary AND a severity level.
 
 Patient: {patient_name}
 Medications: {", ".join(medication_names)}
@@ -121,10 +121,12 @@ Drug entries (index, label, raw FDA text):
 {chr(10).join(entries_desc)}
 
 Rules:
-- If there are NO relevant interaction or contraindication risks for this patient, output for that drug a single sentence: "No significant drug interaction risks for this patient."
+- If there are NO relevant interaction or contraindication risks for this patient, output for that drug a single sentence: "No significant drug interaction risks for this patient." and set severity to "LOW".
 - If there ARE relevant risks, output 1–4 short, clear bullet points outlining them (e.g. "Grapefruit juice may increase drug levels; avoid or limit." "Monitor for muscle pain if taken with gemfibrozil."). Do NOT repeat the FDA boilerplate like "7 DRUG INTERACTIONS See full prescribing information"; only state the actual risks in plain language.
+- Severity must be one of: "SEVERE" (life-threatening, fatal, or contraindicated risks), "MODERATE" (risks requiring monitoring or dose adjustment), "LOW" (minor or no relevant risks).
 
-Reply with a JSON object keyed by index (e.g. "0", "1") where each value is an array of 1–4 strings (the summary lines for that drug). Example: {{"0": ["No significant drug interaction risks for this patient."], "1": ["Avoid grapefruit juice (increases drug levels).", "Monitor for myopathy if taken with gemfibrozil."]}}
+Reply with a JSON object keyed by index (e.g. "0", "1") where each value has "severity" (string) and "items" (array of 1–4 strings). Example:
+{{"0": {{"severity": "LOW", "items": ["No significant drug interaction risks for this patient."]}}, "1": {{"severity": "MODERATE", "items": ["Avoid grapefruit juice (increases drug levels).", "Monitor for myopathy if taken with gemfibrozil."]}}}}
 No other text."""
 
     try:
@@ -140,15 +142,22 @@ No other text."""
                     text = part
                     break
         parsed = json.loads(text)
+        valid_severities = {"SEVERE", "MODERATE", "LOW"}
         if isinstance(parsed, dict):
             out = []
             for i, r in enumerate(filtered_results):
                 key = str(i)
-                new_items = parsed.get(key)
-                if isinstance(new_items, list) and all(isinstance(s, str) for s in new_items):
-                    out.append({**r, "items": new_items})
+                entry = parsed.get(key)
+                if isinstance(entry, dict):
+                    new_items = entry.get("items")
+                    new_severity = entry.get("severity", "").upper()
+                    if not isinstance(new_items, list) or not all(isinstance(s, str) for s in new_items):
+                        new_items = ["No significant drug interaction risks for this patient."]
+                    if new_severity not in valid_severities:
+                        new_severity = r.get("severity", "LOW")
+                    out.append({**r, "items": new_items, "severity": new_severity})
                 else:
-                    out.append({**r, "items": ["No significant drug interaction risks for this patient."]})
+                    out.append({**r, "items": ["No significant drug interaction risks for this patient."], "severity": new_severity})
             return out
     except (json.JSONDecodeError, Exception):
         pass
