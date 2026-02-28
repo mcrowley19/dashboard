@@ -2,9 +2,9 @@
  * Backend API base URL.
  * - In development (npm run dev), uses http://localhost:8000 so local backend is used.
  * - In production build, when unset, uses the Render backend.
- * - Set VITE_API_URL to override (e.g. /api for Vercel serverless).
+ * - Set VITE_API_URL to override (e.g. http://localhost:8000 locally, or /api for Vercel serverless).
  */
-const API_BASE = "https://metricare.onrender.com";
+const API_BASE = import.meta.env.VITE_API_URL || "https://metricare.onrender.com";
 
 export function getApiBase(): string {
   return API_BASE;
