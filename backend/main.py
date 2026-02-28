@@ -1,13 +1,15 @@
+from dotenv import load_dotenv
+import os
+
+# Load backend/.env before any module that uses GEMINI_API_KEY (e.g. gemini)
+_load_env = os.path.join(os.path.dirname(__file__), ".env")
+load_dotenv(_load_env)
+
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from typing import Optional
-import os
-from dotenv import load_dotenv
 from openfda import search_drugs, get_drug_info
 from gemini import generate_text
-
-load_dotenv()
 
 app = FastAPI(
     title="ClearVault API",
@@ -152,6 +154,8 @@ async def get_contraindications(patient_id: str):
 
 # ─── AI Summary ───────────────────────────────────────────────────────────────
 
+import asyncio
+
 @app.post("/patient/summary")
 async def generate_patient_summary(request: SummaryRequest):
     """
@@ -180,9 +184,10 @@ Current Medications:
 """
 
     try:
-        summary = generate_text(prompt, temperature=0.3)
+        # Run blocking Gemini call in a thread so the event loop stays responsive
+        summary = await asyncio.to_thread(generate_text, prompt, 0.3)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Gemini error: {e}")
+        raise HTTPException(status_code=500, detail=f"Gemini error: {str(e)}")
 
     return [{"type": "diagnostic", "summary": summary}]
 
