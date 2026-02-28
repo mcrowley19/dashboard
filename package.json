@@ -1,4 +1,7 @@
 {
+  "scripts": {
+    "dev": "cd backend && /home/cillian/Personal\\ Projects/dashboard/.venv/bin/uvicorn main:app --reload --host 0.0.0.0 --port 8000"
+  },
   "dependencies": {
     "@vercel/edge-config": "^1.4.3"
   }
