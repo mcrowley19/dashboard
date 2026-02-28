@@ -26,7 +26,6 @@ app.add_middleware(
 )
 
 
-# ─── Request / Response Models ────────────────────────────────────────────────
 
 class SummaryRequest(BaseModel):
     patient_name: str
@@ -36,7 +35,6 @@ class SummaryRequest(BaseModel):
     contraindications: list[dict] = []
 
 
-# ─── Patient ──────────────────────────────────────────────────────────────────
 
 @app.get("/patient/{patient_id}")
 def get_patient(patient_id: str):
@@ -52,7 +50,6 @@ def get_patient(patient_id: str):
     }
 
 
-# ─── Patient History ──────────────────────────────────────────────────────────
 
 @app.get("/patient/{patient_id}/history")
 def get_patient_history(patient_id: str):
@@ -105,7 +102,6 @@ def get_patient_history(patient_id: str):
     ]
 
 
-# ─── Medications ──────────────────────────────────────────────────────────────
 
 @app.get("/patient/{patient_id}/medications")
 def get_patient_medications(patient_id: str):
@@ -142,7 +138,7 @@ def get_patient_medications(patient_id: str):
     ]
 
 
-# ─── Family History ───────────────────────────────────────────────────────────
+
 
 @app.get("/patient/{patient_id}/family_history")
 def get_patient_family_history(patient_id: str):
@@ -161,7 +157,7 @@ def get_patient_family_history(patient_id: str):
     ]
 
 
-# ─── Contraindications ────────────────────────────────────────────────────────
+
 
 @app.get("/patient/{patient_id}/contraindications")
 async def get_contraindications(patient_id: str):
@@ -215,7 +211,7 @@ async def get_contraindications(patient_id: str):
     return results
 
 
-# ─── AI Summary ───────────────────────────────────────────────────────────────
+
 
 import asyncio
 from datetime import datetime, timezone
@@ -282,7 +278,7 @@ Potential Contraindications / Interactions:
     return [{"type": "diagnostic", "summary": summary}]
 
 
-# ─── Drug Search (direct FDA passthrough) ─────────────────────────────────────
+
 
 @app.get("/drugs/search")
 async def drugs_search(q: str):
@@ -299,7 +295,7 @@ async def drug_info(drug_name: str):
     return info
 
 
-# ─── Health ───────────────────────────────────────────────────────────────────
+
 
 @app.get("/")
 def root():
@@ -310,6 +306,6 @@ def health():
     return {"status": "healthy"}
 
 
-# ─── Vercel serverless handler ────────────────────────────────────────────────
+
 from mangum import Mangum
 handler = Mangum(app)
