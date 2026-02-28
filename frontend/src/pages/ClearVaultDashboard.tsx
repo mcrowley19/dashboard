@@ -1,27 +1,27 @@
-import Navbar from '../components/Navbar'
-import BrainMappingCard from '../sections/BrainMappingCard'
-import AIAnalyticsCard from '../sections/AIAnalyticsCard'
-import NeuralActivityCard from '../sections/NeuralActivityCard'
-import BrainSymmetryCard from '../sections/BrainSymmetryCard'
-import NextStepsCard from '../sections/NextStepsCard'
-import HippocampalVolumeCard from '../sections/HippocampalVolumeCard'
-import GrayMatterCard from '../sections/GrayMatterCard'
+import Navbar from "../components/Navbar";
+import PatientHistoryCard from "../sections/PatientHistoryCard";
+import MedicationsCard from "../sections/MedicationsCard";
+import InteractionsCard from "../sections/InteractionsCard";
+import HistorySummaryCard from "../sections/HistorySummaryCard";
+import FamilyHistoryCard from "../sections/FamilyHistoryCard";
 
 export default function ClearVaultDashboard() {
   return (
-    <div className="min-h-screen bg-gray-50" style={{ fontFamily: "'DM Sans', sans-serif" }}>
+    <div
+      className="min-h-screen bg-slate-50"
+      style={{ fontFamily: "'DM Sans', sans-serif" }}
+    >
       <Navbar />
+
       <div className="p-6 max-w-[1400px] mx-auto">
         <div className="grid grid-cols-12 gap-5">
-          <BrainMappingCard />
-          <AIAnalyticsCard />
-          <NeuralActivityCard />
-          <BrainSymmetryCard />
-          <NextStepsCard />
-          <HippocampalVolumeCard />
-          <GrayMatterCard />
+          <PatientHistoryCard />
+          <HistorySummaryCard />
+          <MedicationsCard />
+          <InteractionsCard />
+          <FamilyHistoryCard />
         </div>
       </div>
     </div>
-  )
+  );
 }
