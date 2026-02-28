@@ -3,6 +3,44 @@ import { fetchPatientSummary, type SummaryItem } from "../api/client";
 
 const DEFAULT_PATIENT_ID = "1";
 
+/** Renders summary text: **bold** = bold, ***bold*** = red and bold. Only interprets ** and ***. */
+function SummaryWithBold({ text }: { text: string }) {
+  const partRegex = /\*\*\*(.+?)\*\*\*|\*\*(.+?)\*\*/g;
+  let pos = 0;
+  let match;
+  const parts: { type: "normal" | "bold" | "severe"; text: string }[] = [];
+  while ((match = partRegex.exec(text)) !== null) {
+    if (match.index > pos) parts.push({ type: "normal", text: text.slice(pos, match.index) });
+    if (match[1] !== undefined) {
+      parts.push({ type: "severe", text: match[1] });
+    } else {
+      parts.push({ type: "bold", text: match[2] ?? "" });
+    }
+    pos = match.index + match[0].length;
+  }
+  if (pos < text.length) parts.push({ type: "normal", text: text.slice(pos) });
+
+  return (
+    <>
+      {parts.map((seg, i) => {
+        if (seg.type === "normal") return seg.text;
+        if (seg.type === "severe") {
+          return (
+            <strong key={i} className="font-semibold text-red-600">
+              {seg.text}
+            </strong>
+          );
+        }
+        return (
+          <strong key={i} className="font-semibold text-slate-700">
+            {seg.text}
+          </strong>
+        );
+      })}
+    </>
+  );
+}
+
 export default function HistorySummaryCard() {
   const [items, setItems] = useState<SummaryItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -83,7 +121,7 @@ export default function HistorySummaryCard() {
             key={i}
             className="text-xs text-slate-500 break-words leading-relaxed"
           >
-            {summary && <span>{summary}</span>}
+            {summary && <SummaryWithBold text={summary} />}
           </div>
         ))}
       </div>

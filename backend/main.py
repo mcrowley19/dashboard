@@ -218,14 +218,20 @@ async def get_contraindications(patient_id: str):
 # ─── AI Summary ───────────────────────────────────────────────────────────────
 
 import asyncio
+from datetime import datetime, timezone
 
 @app.post("/patient/summary")
 async def generate_patient_summary(request: SummaryRequest):
     """
     Sends patient history, medications, family history, and contraindications
     to Gemini and returns an AI summary that considers all of these.
+    Identifies follow-ups/visits due now and returns them bolded (**text**) in the summary.
     Shape matches the SUMMARY const the frontend expects.
     """
+    now = datetime.now(timezone.utc)
+    current_date_time = now.strftime("%B %d, %Y")  # e.g. February 28, 2025
+    current_date_iso = now.strftime("%Y-%m-%d")    # for unambiguous parsing
+
     history_text = "\n".join(
         f"- {h['label']} ({h.get('date', '')}): {', '.join(h.get('items', []))}"
         for h in request.history
@@ -243,10 +249,14 @@ async def generate_patient_summary(request: SummaryRequest):
         for c in request.contraindications
     )
 
-    prompt = f"""You are a clinical assistant. Summarise the following patient data concisely 
-in 2-4 sentences for a doctor. Take into account their clinical history, current medications, 
-family history, and any potential contraindications or drug interactions. Highlight anything 
-that may need attention (e.g. family risk factors, severe/moderate contraindications). Do not add disclaimers.
+    prompt = f"""You are a clinical assistant. Today's date and time (use this to decide what is "due now"): {current_date_time} (ISO {current_date_iso}).
+
+Summarise the following patient data in 2-4 sentences for a doctor. Take into account their clinical history, current medications, family history, and any potential contraindications or drug interactions. Highlight anything that may need attention (e.g. family risk factors, severe/moderate contraindications).
+
+IMPORTANT - Due/overdue follow-ups: From the clinical history, identify any follow-up, check-up, or next visit that is DUE NOW or OVERDUE based on today's date. Always state how much time overdue when relevant (e.g. "1 week overdue", "2 months overdue").
+- For items that are due now or only slightly overdue (e.g. under 1 month), wrap the phrase in double asterisks: **Hypertension follow-up is due now** or **Annual physical is 2 weeks overdue**.
+- For items that are SEVERELY overdue (e.g. more than 1 month past due), wrap the phrase in TRIPLE asterisks and include how overdue: ***Cardiology follow-up is 3 months overdue***. Use *** only for severely overdue items so they appear red and bold.
+Use ** or *** only for these due/overdue items. Do not add disclaimers.
 
 Patient: {request.patient_name}
 
