@@ -70,9 +70,9 @@ export default function LandingPage() {
 
   const scrollToTop = () => window.scrollTo({ top: 0, behavior: 'smooth' })
   return (
-    <div className="relative w-full bg-gray-50" style={{ fontFamily: "'DM Sans', sans-serif" }}>
+    <div className="relative w-full bg-white" style={{ fontFamily: "'DM Sans', sans-serif" }}>
       {/* Hero */}
-      <section className="relative min-h-screen w-full overflow-hidden">
+      <section className="relative min-h-screen w-full overflow-hidden bg-white">
         <LandingScene />
         <div className="absolute inset-0 flex flex-col items-start justify-center pl-[12%] pr-[8%] md:pl-[14%] max-w-xl text-left pointer-events-none">
           <div className="pointer-events-auto">
