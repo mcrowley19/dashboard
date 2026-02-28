@@ -12,8 +12,8 @@ from openfda import search_drugs, get_drug_info
 from gemini import generate_text
 
 app = FastAPI(
-    title="ClearVault API",
-    description="Backend API for ClearVault patient dashboard",
+    title="Metricare API",
+    description="Backend API for Metricare patient dashboard",
     version="1.0.0"
 )
 
@@ -303,7 +303,7 @@ async def drug_info(drug_name: str):
 
 @app.get("/")
 def root():
-    return {"message": "ClearVault API is running"}
+    return {"message": "Metricare API is running"}
 
 @app.get("/health")
 def health():

@@ -1,6 +1,6 @@
-# ClearVault
+# Metricare
 
-Medical patient dashboard: patient history, medications, drug interactions (FDA), and AI-generated summaries in one place. Replaces scattered legacy systems with a single ClearVault UI and API.
+Medical patient dashboard: patient history, medications, drug interactions (FDA), and AI-generated summaries in one place. Replaces scattered legacy systems with a single Metricare UI and API.
 
 - **Frontend:** React + Vite + Tailwind; landing page with Three.js, dashboard at `/dashboard`.
 - **Backend:** FastAPI (Python); patient/history/medications stubs, FDA drug search, Gemini 2.5 Flash for summaries.
@@ -106,7 +106,7 @@ Expected: `{"status":"healthy"}`
 curl http://localhost:8000/
 ```
 
-Expected: `{"message":"ClearVault API is running"}`
+Expected: `{"message":"Metricare API is running"}`
 
 ### 3.3 Patient endpoints (stub data)
 

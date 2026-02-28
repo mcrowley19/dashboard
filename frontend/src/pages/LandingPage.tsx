@@ -14,7 +14,7 @@ const tiles = [
   },
   {
     title: 'Patient history in one place',
-    body: 'ClearVault brings a patient’s full history into one coherent timeline. Diagnoses, medications, labs, imaging, notes, and referrals are organized chronologically and by category. You see the full picture at a glance instead of hunting through separate modules.',
+    body: 'Metricare brings a patient’s full history into one coherent timeline. Diagnoses, medications, labs, imaging, notes, and referrals are organized chronologically and by category. You see the full picture at a glance instead of hunting through separate modules.',
     icon: (
       <svg className="w-8 h-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
@@ -32,7 +32,7 @@ const tiles = [
   },
   {
     title: 'Built for clarity, not clutter',
-    body: 'Every part of ClearVault is designed to reduce noise. We avoid endless dropdowns, duplicate entries, and redundant alerts. The dashboard prioritizes what matters for the current encounter while still giving you quick access to the full record when you need it.',
+    body: 'Every part of Metricare is designed to reduce noise. We avoid endless dropdowns, duplicate entries, and redundant alerts. The dashboard prioritizes what matters for the current encounter while still giving you quick access to the full record when you need it.',
     icon: (
       <svg className="w-8 h-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
@@ -41,7 +41,7 @@ const tiles = [
   },
   {
     title: 'Who it’s for',
-    body: 'ClearVault is for care teams tired of juggling multiple tools and outdated interfaces. Whether you’re in primary care, specialty practice, or a health system, the platform adapts to your workflow and integrates with your existing systems.',
+    body: 'Metricare is for care teams tired of juggling multiple tools and outdated interfaces. Whether you’re in primary care, specialty practice, or a health system, the platform adapts to your workflow and integrates with your existing systems.',
     icon: (
       <svg className="w-8 h-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
@@ -50,7 +50,7 @@ const tiles = [
   },
   {
     title: 'What’s next',
-    body: 'We’re continuously improving ClearVault based on feedback from clinicians. New integrations, smarter AI summaries, and more flexible views are in the pipeline. Our focus: a medical dashboard that is up to date, easy to use, and free of mess and bloat.',
+    body: 'We’re continuously improving Metricare based on feedback from clinicians. New integrations, smarter AI summaries, and more flexible views are in the pipeline. Our focus: a medical dashboard that is up to date, easy to use, and free of mess and bloat.',
     icon: (
       <svg className="w-8 h-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25H12" />
@@ -80,7 +80,7 @@ export default function LandingPage() {
               className="text-5xl sm:text-6xl md:text-7xl font-bold tracking-tight text-gray-900 opacity-0 animate-fly-in"
               style={{ animationDelay: '0.15s' }}
             >
-              ClearVault
+              Metricare
             </h1>
             <p
               className="mt-4 text-lg sm:text-xl text-gray-600 max-w-md opacity-0 animate-fade-in-up"
@@ -125,7 +125,7 @@ export default function LandingPage() {
       <section id="about" className="relative py-16 md:py-24 px-6 md:px-10 bg-white">
         <div className="max-w-6xl mx-auto">
           <div className="text-center max-w-2xl mx-auto mb-14">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 tracking-tight">About ClearVault</h2>
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 tracking-tight">About Metricare</h2>
             <p className="mt-4 text-gray-600 text-lg leading-relaxed">
               A medical dashboard built for the way clinicians work today. Patient history, real-time data, and AI in one up-to-date view—without the clutter and bloat.
             </p>
@@ -156,7 +156,7 @@ export default function LandingPage() {
 
           <div className="mt-14 pt-8 border-t border-gray-100 text-center">
             <p className="text-gray-500 text-sm">
-              Placeholder content. ClearVault is a medical dashboard for patient history with AI integration, built to replace messy and bloated legacy systems.
+              Placeholder content. Metricare is a medical dashboard for patient history with AI integration, built to replace messy and bloated legacy systems.
             </p>
           </div>
         </div>
