@@ -1,25 +1,23 @@
-.vercel
-.env
-.env*.local
-**/.env
+# Dependencies and env — do not commit
 node_modules/
+/package-lock.json
 backend/.venv/
-__pycache__/
-*.pyc
-.DS_Store
-dist/
-build/
-*.log
-*.egg-info/
-
-
-
-backend/Pipfile
-backend/Pipfile.lock
-
-__pycache__/
-*.py[cod]
-*$py.class
 .venv/
 env/
 .env
+.env*.local
+**/.env
+
+# Build and cache
+dist/
+build/
+.vercel/
+__pycache__/
+*.pyc
+*.py[cod]
+*$py.class
+*.egg-info/
+
+# IDE and OS
+.DS_Store
+*.log

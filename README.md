@@ -2,8 +2,16 @@
 
 Medical patient dashboard: patient history, medications, drug interactions (FDA), and AI-generated summaries in one place. Replaces scattered legacy systems with a single Metricare UI and API.
 
-- **Frontend:** React + Vite + Tailwind; landing page with Three.js, dashboard at `/dashboard`.
-- **Backend:** FastAPI (Python); patient/history/medications stubs, FDA drug search, Gemini 2.5 Flash for summaries.
+---
+
+## Repo structure
+
+| Path | Purpose |
+|------|--------|
+| **`frontend/`** | React + Vite app. **Node/npm only** — run `npm install` and `npm run dev` here (not at root). |
+| **`backend/`** | FastAPI (Python). **Python only** — no Node; use a venv and `pip install -r requirements.txt` here. |
+| **`api/`** | Vercel serverless entry (wraps backend for serverless deploy). No local install. |
+| **Root** | `vercel.json`, `requirements.txt` (for Vercel), and convenience scripts. **Do not run `npm install` at root** — only in `frontend/`. |
 
 ---
 
@@ -17,6 +25,8 @@ Medical patient dashboard: patient history, medications, drug interactions (FDA)
 ## 1. Backend setup and run
 
 ### 1.1 Create a virtual environment and install dependencies
+
+**Always run these from the `backend/` directory:**
 
 ```bash
 cd backend
@@ -56,11 +66,12 @@ From the **backend** directory (with `.venv` activated):
 uvicorn main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-Or from the **project root** (uses `python`; if that fails, use the command above with `python3`):
+Or from the **project root** (backend must be set up first):
 
 ```bash
 npm run dev
 ```
+(or `npm run dev:backend`)
 
 - **API base URL:** http://localhost:8000  
 - **Swagger UI (interactive docs):** http://localhost:8000/docs  
@@ -76,6 +87,8 @@ cd backend && uvicorn main:app --reload --host 0.0.0.0 --port 8001
 
 ## 2. Frontend setup and run
 
+**Install and run only from the `frontend/` directory** (do not run `npm install` at repo root):
+
 In a **separate terminal**:
 
 ```bash
@@ -83,6 +96,8 @@ cd frontend
 npm install
 npm run dev
 ```
+
+Or from the project root: `npm run dev:frontend`
 
 - **App:** http://localhost:5173  
 - **Landing:** http://localhost:5173/  
@@ -176,9 +191,10 @@ curl http://localhost:8000/drugs/aspirin
 
 | What              | Command / URL |
 |-------------------|----------------|
-| Backend (from repo root) | `npm run dev` (runs backend on 8000) |
+| Backend (from repo root) | `npm run dev` or `npm run dev:backend` |
 | Backend (from backend/)  | `uvicorn main:app --reload --host 0.0.0.0 --port 8000` |
-| Frontend          | `cd frontend && npm run dev` → http://localhost:5173 |
+| Frontend (from repo root) | `npm run dev:frontend` |
+| Frontend (from frontend/) | `npm run dev` → http://localhost:5173 |
 | API docs          | http://localhost:8000/docs |
 | Health            | http://localhost:8000/health |
 
