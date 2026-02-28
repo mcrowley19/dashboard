@@ -2,7 +2,7 @@ from dotenv import load_dotenv
 import os
 import requests
 
-# Load backend/.env before any module that uses GEMINI_API_KEY (e.g. gemini)
+# Load backend/.env before any module that uses GEMINI_API_KEY e.g. gemini
 _load_env = os.path.join(os.path.dirname(__file__), ".env")
 if os.path.isfile(_load_env):
     load_dotenv(_load_env)
