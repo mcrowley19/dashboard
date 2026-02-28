@@ -5,7 +5,7 @@ import InteractionsCard from "../sections/InteractionsCard";
 import HistorySummaryCard from "../sections/HistorySummaryCard";
 import FamilyHistoryCard from "../sections/FamilyHistoryCard";
 
-export default function BioSyncDashboard() {
+export default function ClearVaultDashboard() {
   return (
     <div
       className="min-h-screen bg-slate-50"
