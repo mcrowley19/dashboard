@@ -1,12 +1,32 @@
-const SUMMARY = [
-  {
-    type: "diagnostic" as const,
-    summary:
-      "This patient is not doing very well djskafhhfuewq;lefhwu;efwh;uefwh;uwfe;hhewu;fu;wfhufe;huewqhufewhouwepffuhepwhufpewhufewhpuwehfpew;hfewhfshf;ehf;uohdsfhih;wefhwo",
-  },
-];
+import { useEffect, useState } from "react";
+import { fetchPatientSummary, type SummaryItem } from "../api/client";
+
+const DEFAULT_PATIENT_ID = "1";
 
 export default function HistorySummaryCard() {
+  const [items, setItems] = useState<SummaryItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    setError(null);
+    fetchPatientSummary(DEFAULT_PATIENT_ID)
+      .then((data) => {
+        if (!cancelled) setItems(data);
+      })
+      .catch((e) => {
+        if (!cancelled) setError(e instanceof Error ? e.message : "Failed to load summary");
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   return (
     <div
       className="col-span-4 bg-white rounded-2xl flex flex-col border border-slate-100"
@@ -19,7 +39,6 @@ export default function HistorySummaryCard() {
       {/* Header */}
       <div className="px-5 pt-4 pb-3 shrink-0 border-b border-slate-50 flex items-center gap-2.5">
         <div className="w-7 h-7 rounded-lg bg-indigo-50 flex items-center justify-center shrink-0">
-          {/* Sparkle / AI icon */}
           <svg
             width="14"
             height="14"
@@ -45,9 +64,23 @@ export default function HistorySummaryCard() {
 
       {/* Body */}
       <div className="flex-1 overflow-y-auto overflow-x-hidden min-h-0 w-full px-5 py-4">
-        {SUMMARY.map(({ summary }) => (
+        {loading && (
+          <div className="text-xs text-slate-400 flex items-center gap-2">
+            <span className="inline-block w-4 h-4 border-2 border-indigo-200 border-t-indigo-500 rounded-full animate-spin" />
+            Generating summary…
+          </div>
+        )}
+        {error && (
+          <div className="text-xs text-red-600">
+            {error}
+          </div>
+        )}
+        {!loading && !error && items.length === 0 && (
+          <div className="text-xs text-slate-400">No summary available.</div>
+        )}
+        {!loading && !error && items.length > 0 && items.map(({ summary }, i) => (
           <div
-            key={summary}
+            key={i}
             className="text-xs text-slate-500 break-words leading-relaxed"
           >
             {summary && <span>{summary}</span>}

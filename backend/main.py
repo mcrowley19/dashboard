@@ -32,9 +32,8 @@ class SummaryRequest(BaseModel):
     patient_name: str
     history: list[dict]
     medications: list[dict]
-
-class DrugInfoRequest(BaseModel):
-    drug_name: str
+    family_history: list[dict] = []
+    contraindications: list[dict] = []
 
 
 # ─── Patient ──────────────────────────────────────────────────────────────────
@@ -65,14 +64,44 @@ def get_patient_history(patient_id: str):
     return [
         {
             "type": "diagnostic",
-            "label": "Went to Roscommon",
+            "label": "Annual physical",
             "date": "Jan 2025",
             "items": [
-                "Can cause you to want to do BESS",
-                "Lunacy",
-                "Play gracefully with ideas",
+                "Routine exam, vitals WNL",
+                "CBC and metabolic panel ordered",
+                "Patient advised to continue diet and exercise",
             ],
-        }
+        },
+        {
+            "type": "diagnostic",
+            "label": "Hypertension follow-up",
+            "date": "Nov 2024",
+            "items": [
+                "BP 132/82 on current regimen",
+                "Lisinopril dose maintained",
+                "Next check in 3 months",
+            ],
+        },
+        {
+            "type": "diagnostic",
+            "label": "Lab results",
+            "date": "Oct 2024",
+            "items": [
+                "HbA1c 5.8% (prediabetic range)",
+                "LDL 118 mg/dL",
+                "TSH 2.1 mIU/L",
+            ],
+        },
+        {
+            "type": "diagnostic",
+            "label": "Cardiology consult",
+            "date": "Aug 2024",
+            "items": [
+                "Echo showed mild LVH, EF 58%",
+                "Stress test negative for ischemia",
+                "Continue current cardiac meds",
+            ],
+        },
     ]
 
 
@@ -83,18 +112,51 @@ def get_patient_medications(patient_id: str):
     """
     Returns the patient's current medications.
     Shape matches the MEDICATIONS const the frontend expects.
+    Uses drug names that exist in OpenFDA for lookups (e.g. contraindications).
+    TODO: Populate `description` from OpenFDA drug label (purpose/indications) when implemented.
+    """
+    # Stub — swap in DB query here. Labels use OpenFDA-recognized names (brand or generic).
+    return [
+        {
+            "type": "diagnostic",
+            "label": "Lisinopril",
+            "conflicts": [],
+            "items": ["10 mg once daily", "For hypertension"],
+            # TODO(OpenFDA): description = openfda.get_drug_description(label)  # e.g. purpose/indications
+            "description": None,
+        },
+        {
+            "type": "diagnostic",
+            "label": "Atorvastatin",
+            "conflicts": [],
+            "items": ["20 mg once daily at bedtime", "For LDL cholesterol"],
+            "description": None,
+        },
+        {
+            "type": "diagnostic",
+            "label": "Aspirin",
+            "conflicts": [],
+            "items": ["81 mg once daily", "Cardioprotective"],
+            "description": None,
+        },
+    ]
+
+
+# ─── Family History ───────────────────────────────────────────────────────────
+
+@app.get("/patient/{patient_id}/family_history")
+def get_patient_family_history(patient_id: str):
+    """
+    Returns the patient's family history (relatives and conditions).
+    Shape matches the FAMILY_HISTORY const the frontend expects.
     """
     # Stub — swap in DB query here
     return [
         {
             "type": "diagnostic",
-            "label": "Benzylpiperazine",
-            "conflicts": [],
-            "items": [
-                "Can cause you to want to do BESS",
-                "Lunacy",
-                "Play gracefully with ideas",
-            ],
+            "label": "Oscar Wilde",
+            "relation": "Father",
+            "conditions": ["Heart disease", "Cancer", "plague"],
         }
     ]
 
@@ -104,11 +166,11 @@ def get_patient_medications(patient_id: str):
 @app.get("/patient/{patient_id}/contraindications")
 async def get_contraindications(patient_id: str):
     """
-    Pulls the patient's medications, looks up each one in the FDA API,
+    Pulls the patient's medications, looks up each one in the OpenFDA API,
     and returns potential contraindications with severity.
     Shape matches the INTERACTIONS const the frontend expects.
+    TODO: Populate `description` per drug from OpenFDA (e.g. warnings summary) when implemented.
     """
-    # Get this patient's medications (reuse stub above for now)
     medications = get_patient_medications(patient_id)
 
     results = []
@@ -117,19 +179,19 @@ async def get_contraindications(patient_id: str):
         info = await get_drug_info(drug_name)
 
         if "error" in info:
-            # Drug not found in FDA — still return it, no interactions listed
             results.append({
                 "type": "diagnostic",
                 "label": drug_name,
                 "severity": "UNKNOWN",
                 "items": ["No FDA data available for this drug."],
+                # TODO(OpenFDA): description = openfda.get_contraindication_description(drug_name)
+                "description": None,
             })
             continue
 
         interactions = info.get("interactions", ["N/A"])
         warnings     = info.get("warnings", ["N/A"])
 
-        # Determine severity based on whether warnings mention key terms
         warning_text = " ".join(warnings).lower()
         if any(w in warning_text for w in ["death", "fatal", "severe", "life-threatening"]):
             severity = "SEVERE"
@@ -139,7 +201,6 @@ async def get_contraindications(patient_id: str):
             severity = "LOW"
 
         items = interactions if interactions != ["N/A"] else warnings
-        # Truncate each item so the UI doesn't overflow
         items = [i[:200] for i in items]
 
         results.append({
@@ -147,6 +208,8 @@ async def get_contraindications(patient_id: str):
             "label": drug_name,
             "severity": severity,
             "items": items,
+            # TODO(OpenFDA): description = brief summary from warnings/interactions for this drug
+            "description": None,
         })
 
     return results
@@ -159,7 +222,8 @@ import asyncio
 @app.post("/patient/summary")
 async def generate_patient_summary(request: SummaryRequest):
     """
-    Sends patient history + medications to Gemini and returns an AI summary.
+    Sends patient history, medications, family history, and contraindications
+    to Gemini and returns an AI summary that considers all of these.
     Shape matches the SUMMARY const the frontend expects.
     """
     history_text = "\n".join(
@@ -170,17 +234,33 @@ async def generate_patient_summary(request: SummaryRequest):
         f"- {m['label']}: {', '.join(m.get('items', []))}"
         for m in request.medications
     )
+    family_text = "\n".join(
+        f"- {f.get('label', '')} ({f.get('relation', '')}): {', '.join(f.get('conditions', []))}"
+        for f in request.family_history
+    )
+    contra_text = "\n".join(
+        f"- {c.get('label', '')} [{c.get('severity', '')}]: {', '.join(c.get('items', []))}"
+        for c in request.contraindications
+    )
 
     prompt = f"""You are a clinical assistant. Summarise the following patient data concisely 
-in 2-3 sentences for a doctor. Do not add disclaimers.
+in 2-4 sentences for a doctor. Take into account their clinical history, current medications, 
+family history, and any potential contraindications or drug interactions. Highlight anything 
+that may need attention (e.g. family risk factors, severe/moderate contraindications). Do not add disclaimers.
 
 Patient: {request.patient_name}
 
-History:
-{history_text}
+Clinical History:
+{history_text or "(none)"}
 
 Current Medications:
-{meds_text}
+{meds_text or "(none)"}
+
+Family History:
+{family_text or "(none)"}
+
+Potential Contraindications / Interactions:
+{contra_text or "(none)"}
 """
 
     try:

@@ -2,8 +2,5 @@
   "scripts": {
     "dev": "cd backend && python -m uvicorn main:app --reload --host 0.0.0.0 --port 8000",
     "dev:alt": "cd backend && python -m uvicorn main:app --reload --host 0.0.0.0 --port 8001"
-  },
-  "dependencies": {
-    "@vercel/edge-config": "^1.4.3"
   }
 }
