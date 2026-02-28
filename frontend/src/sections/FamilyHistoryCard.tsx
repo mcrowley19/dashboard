@@ -1,13 +1,24 @@
-const FAMILY_HISTORY = [
-  {
-    type: "diagnostic" as const,
-    label: "Oscar Wilde",
-    relation: "Father",
-    conditions: ["Heart disease", "Cancer", "plague"],
-  },
-];
+import { useEffect, useState } from "react";
+import { fetchPatientFamilyHistory, type FamilyHistoryEntry } from "../api/client";
 
-export default function FamilyHistoryCard() {
+export default function FamilyHistoryCard({ patientId }: { patientId: string }) {
+  const [familyHistory, setFamilyHistory] = useState<FamilyHistoryEntry[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    setError(null);
+    fetchPatientFamilyHistory(patientId)
+      .then(setFamilyHistory)
+      .catch((e) => setError(e instanceof Error ? e.message : "Failed to load family history"))
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => { cancelled = true; };
+  }, [patientId]);
+
   return (
     <div
       className="col-span-4 row-span-2 bg-white rounded-2xl flex flex-col border border-slate-100"
@@ -40,21 +51,24 @@ export default function FamilyHistoryCard() {
       </div>
 
       <div className="flex flex-col gap-4 overflow-y-auto flex-1 px-5 py-4">
-        {FAMILY_HISTORY.map(({ type, label, relation, conditions }) => (
-          <div key={type} className="flex gap-3">
+        {loading && (
+          <div className="text-xs text-slate-400 flex items-center gap-2">
+            <span className="inline-block w-4 h-4 border-2 border-teal-200 border-t-teal-500 rounded-full animate-spin" />
+            Loading…
+          </div>
+        )}
+        {error && <div className="text-xs text-red-600">{error}</div>}
+        {!loading && !error && familyHistory.map(({ label, relation, conditions }) => (
+          <div key={label} className="flex gap-3">
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1.5">
-                <span className="text-xs font-semibold text-slate-800">
-                  {label}
-                </span>
+                <span className="text-xs font-semibold text-slate-800">{label}</span>
               </div>
               <div className="flex items-center gap-2 mb-1.5">
-                <span className="text-xs font-semibold text-slate-800">
-                  {relation}
-                </span>
+                <span className="text-xs font-semibold text-slate-800">{relation}</span>
               </div>
               <ul className="text-[11px] text-slate-400 space-y-0.5 list-disc list-inside">
-                {conditions.map((condition) => (
+                {(conditions ?? []).map((condition) => (
                   <li key={condition}>{condition}</li>
                 ))}
               </ul>

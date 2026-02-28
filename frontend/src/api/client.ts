@@ -1,12 +1,30 @@
 /**
  * Backend API base URL. Set VITE_API_URL in .env for production.
+ * When unset in production (e.g. Vercel), uses same-origin /api.
  */
 const API_BASE =
   (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/$/, "") ||
-  "http://localhost:8000";
+  (import.meta.env.PROD ? "/api" : "http://localhost:8000");
 
 export function getApiBase(): string {
   return API_BASE;
+}
+
+export type Patient = {
+  id: string;
+  name: string;
+  dob: string;
+  initials: string;
+};
+
+/**
+ * Fetches the list of patients from the backend (main.py GET /patients from sample_data).
+ */
+export async function fetchPatients(): Promise<Patient[]> {
+  const base = getApiBase();
+  const res = await fetch(`${base}/patients`);
+  if (!res.ok) throw new Error("Failed to load patients");
+  return (await res.json()) as Patient[];
 }
 
 export type SummaryItem = { type: "diagnostic"; summary: string };
@@ -57,6 +75,25 @@ export type ContraindicationEntry = {
   /** Set when OpenFDA description is implemented on the backend. */
   description?: string | null;
 };
+
+export type FamilyHistoryEntry = {
+  type: string;
+  label: string;
+  relation?: string;
+  conditions: string[];
+};
+
+/**
+ * Fetches patient family history from the backend (main.py from sample_data).
+ */
+export async function fetchPatientFamilyHistory(
+  patientId: string
+): Promise<FamilyHistoryEntry[]> {
+  const base = getApiBase();
+  const res = await fetch(`${base}/patient/${patientId}/family_history`);
+  if (!res.ok) throw new Error("Failed to load family history");
+  return (await res.json()) as FamilyHistoryEntry[];
+}
 
 /**
  * Fetches potential contraindications from the backend (OpenFDA; description not yet implemented).

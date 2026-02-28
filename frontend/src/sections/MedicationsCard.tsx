@@ -1,9 +1,7 @@
 import { useEffect, useState } from "react";
 import { fetchPatientMedications, type MedicationEntry } from "../api/client";
 
-const DEFAULT_PATIENT_ID = "1";
-
-export default function MedicationsCard() {
+export default function MedicationsCard({ patientId }: { patientId: string }) {
   const [medications, setMedications] = useState<MedicationEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -12,7 +10,7 @@ export default function MedicationsCard() {
     let cancelled = false;
     setLoading(true);
     setError(null);
-    fetchPatientMedications(DEFAULT_PATIENT_ID)
+    fetchPatientMedications(patientId)
       .then(setMedications)
       .catch((e) => setError(e instanceof Error ? e.message : "Failed to load medications"))
       .finally(() => {
@@ -21,7 +19,7 @@ export default function MedicationsCard() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [patientId]);
 
   return (
     <div

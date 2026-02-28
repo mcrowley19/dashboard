@@ -1,8 +1,6 @@
 import { useEffect, useState } from "react";
 import { fetchPatientSummary, type SummaryItem } from "../api/client";
 
-const DEFAULT_PATIENT_ID = "1";
-
 /** Renders summary text: **bold** = bold, ***bold*** = red and bold. Only interprets ** and ***. */
 function SummaryWithBold({ text }: { text: string }) {
   const partRegex = /\*\*\*(.+?)\*\*\*|\*\*(.+?)\*\*/g;
@@ -41,7 +39,7 @@ function SummaryWithBold({ text }: { text: string }) {
   );
 }
 
-export default function HistorySummaryCard() {
+export default function HistorySummaryCard({ patientId }: { patientId: string }) {
   const [items, setItems] = useState<SummaryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -50,7 +48,7 @@ export default function HistorySummaryCard() {
     let cancelled = false;
     setLoading(true);
     setError(null);
-    fetchPatientSummary(DEFAULT_PATIENT_ID)
+    fetchPatientSummary(patientId)
       .then((data) => {
         if (!cancelled) setItems(data);
       })
@@ -63,7 +61,7 @@ export default function HistorySummaryCard() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [patientId]);
 
   return (
     <div

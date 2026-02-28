@@ -1,15 +1,13 @@
 import { useEffect, useState } from "react";
 import { fetchContraindications, type ContraindicationEntry } from "../api/client";
 
-const DEFAULT_PATIENT_ID = "1";
-
 const SEVERITY_BADGE: Record<string, string> = {
   SEVERE: "bg-red-50 text-red-600 border border-red-100",
   MODERATE: "bg-amber-50 text-amber-600 border border-amber-100",
   LOW: "bg-green-50 text-green-600 border border-green-100",
 };
 
-export default function InteractionsCard() {
+export default function InteractionsCard({ patientId }: { patientId: string }) {
   const [contraindications, setContraindications] = useState<ContraindicationEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -18,7 +16,7 @@ export default function InteractionsCard() {
     let cancelled = false;
     setLoading(true);
     setError(null);
-    fetchContraindications(DEFAULT_PATIENT_ID)
+    fetchContraindications(patientId)
       .then(setContraindications)
       .catch((e) =>
         setError(e instanceof Error ? e.message : "Failed to load contraindications")
@@ -29,7 +27,7 @@ export default function InteractionsCard() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [patientId]);
 
   return (
     <div

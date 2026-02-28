@@ -2,9 +2,7 @@ import { useEffect, useState } from "react";
 import CalendarIcon from "../components/icons/CalendarIcon";
 import { fetchPatientHistory, type HistoryEntry } from "../api/client";
 
-const DEFAULT_PATIENT_ID = "1";
-
-export default function PatientHistoryCard() {
+export default function PatientHistoryCard({ patientId }: { patientId: string }) {
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -13,12 +11,12 @@ export default function PatientHistoryCard() {
     let cancelled = false;
     setLoading(true);
     setError(null);
-    fetchPatientHistory(DEFAULT_PATIENT_ID)
+    fetchPatientHistory(patientId)
       .then(setHistory)
       .catch((e) => setError(e instanceof Error ? e.message : "Failed to load history"))
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
-  }, []);
+  }, [patientId]);
 
   return (
     <div

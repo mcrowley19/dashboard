@@ -4,14 +4,20 @@ import requests
 
 # Load backend/.env before any module that uses GEMINI_API_KEY (e.g. gemini)
 _load_env = os.path.join(os.path.dirname(__file__), ".env")
-load_dotenv(_load_env)
+if os.path.isfile(_load_env):
+    load_dotenv(_load_env)
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from openfda import search_drugs, get_drug_info
-from gemini import generate_text
-from sample_data import SAMPLE_DATA
+from gemini import generate_text, filter_contraindications, summarize_contraindications_for_display
+from sample_data import sample_data
+from fhir import (
+    FHIR_PATIENT_IDS,
+    get_fhir_patient_list,
+    get_patient_info as fhir_get_patient_info,
+)
 
 
 
@@ -40,65 +46,100 @@ class SummaryRequest(BaseModel):
     contraindications: list[dict] = []
 
 
+def _initials(name: str) -> str:
+    parts = (name or "").strip().split()
+    if not parts:
+        return "?"
+    if len(parts) == 1:
+        return (parts[0][:2] or "?").upper()
+    return (parts[0][0] + parts[-1][0]).upper()
+
+
+@app.get("/patients")
+def list_patients():
+    """Returns patients from sample_data and from FHIR (fhir.py) for the frontend."""
+    out = []
+    for pid, p in sample_data.items():
+        name = p.get("name") or "Unknown"
+        dob = p.get("patientDOB") or ""
+        out.append({"id": pid, "name": name, "dob": dob, "initials": _initials(name)})
+    out.extend(get_fhir_patient_list())
+    def _sort_key(item):
+        i = item["id"]
+        if i.isdigit():
+            return (0, int(i))
+        return (1, i)
+    out.sort(key=_sort_key)
+    return out
+
 
 @app.get("/patient/{patient_id}")
 def get_patient(patient_id: str):
-    patient_record = SAMPLE_DATA[patient_id]
-    """
-    Returns basic patient info.
-    In production, replace this with a real DB lookup.
-    """
-    # Stub — swap in DB query here
-    return {
-        "name": patient_record["name"],
-        "patientid": patient_record["patientid"],
-        "patientDOB": patient_record["patientDOB"],
-    }
+    """Returns basic patient info from sample_data or FHIR when available; otherwise stub."""
+    if patient_id in FHIR_PATIENT_IDS:
+        try:
+            p = fhir_get_patient_info(patient_id)
+            return {
+                "name": p.get("name", "Unknown"),
+                "patientid": p.get("patientid", patient_id),
+                "patientDOB": p.get("patientDOB", ""),
+            }
+        except Exception:
+            return {"name": "Unknown", "patientid": patient_id, "patientDOB": ""}
+    if patient_id in sample_data:
+        p = sample_data[patient_id]
+        return {
+            "name": p.get("name", "Unknown"),
+            "patientid": p.get("patientid", patient_id),
+            "patientDOB": p.get("patientDOB", ""),
+        }
+    return {"name": "Unknown", "patientid": patient_id, "patientDOB": ""}
 
 
 
 @app.get("/patient/{patient_id}/history")
 def get_patient_history(patient_id: str):
-    """
-    Returns the patient's clinical history entries.
-    Shape matches the HISTORY const the frontend expects.
-    """
-    patient_record = SAMPLE_DATA[patient_id]
-    # Stub — swap in DB query here
-    return [
-        patient_record["patient_history"]
-    ]
+    """Returns the patient's clinical history from sample_data or FHIR when available."""
+    if patient_id in FHIR_PATIENT_IDS:
+        try:
+            p = fhir_get_patient_info(patient_id)
+            return p.get("patient_history", [])
+        except Exception:
+            return []
+    if patient_id in sample_data:
+        return sample_data[patient_id].get("patient_history", [])
+    return []
 
 
 
 @app.get("/patient/{patient_id}/medications")
 def get_patient_medications(patient_id: str):
-    """
-    Returns the patient's current medications.
-    Shape matches the MEDICATIONS const the frontend expects.
-    Uses drug names that exist in OpenFDA for lookups (e.g. contraindications).
-    TODO: Populate `description` from OpenFDA drug label (purpose/indications) when implemented.
-    """
-    patient_record = SAMPLE_DATA[patient_id]
-    # Stub — swap in DB query here. Labels use OpenFDA-recognized names (brand or generic).
-    return [
-        patient_record["current_medications"]
-    ]
+    """Returns the patient's current medications from sample_data or FHIR when available."""
+    if patient_id in FHIR_PATIENT_IDS:
+        try:
+            p = fhir_get_patient_info(patient_id)
+            return p.get("current_medications", [])
+        except Exception:
+            return []
+    if patient_id in sample_data:
+        return sample_data[patient_id].get("current_medications", [])
+    return []
 
 
 
 
 @app.get("/patient/{patient_id}/family_history")
 def get_patient_family_history(patient_id: str):
-    """
-    Returns the patient's family history (relatives and conditions).
-    Shape matches the FAMILY_HISTORY const the frontend expects.
-    """
-    patient_record = SAMPLE_DATA[patient_id]
-    # Stub — swap in DB query here
-    return [
-       patient_record["family_history"]
-    ]
+    """Returns the patient's family history from sample_data or FHIR when available."""
+    if patient_id in FHIR_PATIENT_IDS:
+        try:
+            p = fhir_get_patient_info(patient_id)
+            return p.get("family_history", [])
+        except Exception:
+            return []
+    if patient_id in sample_data:
+        return sample_data[patient_id].get("family_history", [])
+    return []
 
 
 
@@ -107,30 +148,41 @@ def get_patient_family_history(patient_id: str):
 async def get_contraindications(patient_id: str):
     """
     Pulls the patient's medications, looks up each one in the OpenFDA API,
-    and returns potential contraindications with severity.
+    then uses Gemini to return only contraindications relevant for this patient.
     Shape matches the INTERACTIONS const the frontend expects.
-    TODO: Populate `description` per drug from OpenFDA (e.g. warnings summary) when implemented.
     """
+    patient = get_patient(patient_id)
     medications = get_patient_medications(patient_id)
+    history = get_patient_history(patient_id)
+    family = get_patient_family_history(patient_id)
 
-    results = []
+    history_text = "\n".join(
+        f"- {h.get('label', '')} ({h.get('date', '')}): {', '.join(h.get('items', []))}"
+        for h in history
+    )
+    family_text = "\n".join(
+        f"- {f.get('label', '')} ({f.get('relation', '')}): {', '.join(f.get('conditions', []))}"
+        for f in family
+    )
+    medication_names = [m["label"] for m in medications]
+
+    raw_results = []
     for med in medications:
         drug_name = med["label"]
         info = await get_drug_info(drug_name)
 
         if "error" in info:
-            results.append({
+            raw_results.append({
                 "type": "diagnostic",
                 "label": drug_name,
                 "severity": "UNKNOWN",
                 "items": ["No FDA data available for this drug."],
-                # TODO(OpenFDA): description = openfda.get_contraindication_description(drug_name)
                 "description": None,
             })
             continue
 
         interactions = info.get("interactions", ["N/A"])
-        warnings     = info.get("warnings", ["N/A"])
+        warnings = info.get("warnings", ["N/A"])
 
         warning_text = " ".join(warnings).lower()
         if any(w in warning_text for w in ["death", "fatal", "severe", "life-threatening"]):
@@ -143,14 +195,33 @@ async def get_contraindications(patient_id: str):
         items = interactions if interactions != ["N/A"] else warnings
         items = [i[:200] for i in items]
 
-        results.append({
+        raw_results.append({
             "type": "diagnostic",
             "label": drug_name,
             "severity": severity,
             "items": items,
-            # TODO(OpenFDA): description = brief summary from warnings/interactions for this drug
             "description": None,
         })
+
+    try:
+        results = await asyncio.to_thread(
+            filter_contraindications,
+            patient["name"],
+            medication_names,
+            history_text,
+            family_text,
+            raw_results,
+        )
+        results = await asyncio.to_thread(
+            summarize_contraindications_for_display,
+            patient["name"],
+            medication_names,
+            history_text,
+            family_text,
+            results,
+        )
+    except Exception:
+        results = raw_results
 
     return results
 

@@ -1,41 +1,40 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useSearchParams, useNavigate } from "react-router-dom";
+import { fetchPatients, type Patient } from "../api/client";
 
-// Mock patient data for search
-const PATIENTS = [
-  { id: "BIO-20240112", name: "John Doe", dob: "Jan 12, 1984", initials: "JD" },
-  {
-    id: "BIO-20231205",
-    name: "Sarah Miller",
-    dob: "Dec 5, 1991",
-    initials: "SM",
-  },
-  {
-    id: "BIO-20240308",
-    name: "Robert Chen",
-    dob: "Mar 8, 1976",
-    initials: "RC",
-  },
-  {
-    id: "BIO-20240521",
-    name: "Emily Watson",
-    dob: "May 21, 1989",
-    initials: "EW",
-  },
-];
+const DEFAULT_PATIENT_ID = "BIO-20231205";
 
 export default function Navbar() {
-  const [currentPatient, setCurrentPatient] = useState(PATIENTS[0]);
+  const [patients, setPatients] = useState<Patient[]>([]);
+  const [currentPatient, setCurrentPatient] = useState<Patient | null>(null);
   const [query, setQuery] = useState("");
   const [showResults, setShowResults] = useState(false);
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const patientIdFromUrl = searchParams.get("patient") || DEFAULT_PATIENT_ID;
+
+  useEffect(() => {
+    let cancelled = false;
+    fetchPatients()
+      .then((list) => {
+        if (!cancelled) setPatients(list);
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
+
+  useEffect(() => {
+    const match = patients.find((p) => p.id === patientIdFromUrl);
+    setCurrentPatient(match ?? patients[0] ?? null);
+  }, [patients, patientIdFromUrl]);
 
   const filtered = query.trim()
-    ? PATIENTS.filter(
+    ? patients.filter(
         (p) =>
           p.name.toLowerCase().includes(query.toLowerCase()) ||
           p.id.toLowerCase().includes(query.toLowerCase()),
       )
-    : PATIENTS;
+    : patients;
 
   return (
     <nav className="flex items-center justify-between px-6 py-2.5 bg-white border-b border-slate-200">
@@ -116,6 +115,7 @@ export default function Navbar() {
                       setCurrentPatient(patient);
                       setQuery("");
                       setShowResults(false);
+                      navigate(`/dashboard?patient=${encodeURIComponent(patient.id)}`);
                     }}
                     className="w-full flex items-center gap-2.5 px-3 py-2 hover:bg-slate-50 transition-colors text-left"
                   >
@@ -140,17 +140,23 @@ export default function Navbar() {
 
         {/* Current patient info */}
         <div className="flex items-center gap-2.5">
-          <div className="w-7 h-7 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center text-white font-bold text-[10px] shrink-0">
-            {currentPatient.initials}
-          </div>
-          <div>
-            <p className="text-[12px] font-semibold text-slate-700 leading-none mb-0.5">
-              {currentPatient.name}
-            </p>
-            <p className="text-[11px] text-slate-400 leading-none">
-              #{currentPatient.id} · DOB: {currentPatient.dob}
-            </p>
-          </div>
+          {currentPatient ? (
+            <>
+              <div className="w-7 h-7 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center text-white font-bold text-[10px] shrink-0">
+                {currentPatient.initials}
+              </div>
+              <div>
+                <p className="text-[12px] font-semibold text-slate-700 leading-none mb-0.5">
+                  {currentPatient.name}
+                </p>
+                <p className="text-[11px] text-slate-400 leading-none">
+                  #{currentPatient.id} · DOB: {currentPatient.dob}
+                </p>
+              </div>
+            </>
+          ) : (
+            <span className="text-[12px] text-slate-400">Loading patients…</span>
+          )}
         </div>
       </div>
     </nav>
