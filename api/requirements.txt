@@ -1,6 +1,0 @@
-# Same as backend - required for api/index.py (Vercel installs from api/ or project root)
-fastapi==0.109.0
-python-dotenv==1.0.0
-httpx==0.25.2
-google-generativeai==0.3.0
-requests>=2.28.0

@@ -4,9 +4,7 @@
  * - In production build, when unset, uses the Render backend.
  * - Set VITE_API_URL to override (e.g. /api for Vercel serverless).
  */
-const API_BASE =
-  (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/$/, "") ||
-  (import.meta.env.DEV ? "http://localhost:8000" : "https://metricare.onrender.com");
+const API_BASE = "https://metricare.onrender.com";
 
 export function getApiBase(): string {
   return API_BASE;
@@ -41,7 +39,9 @@ export type HistoryEntry = {
 /**
  * Fetches patient clinical history from the backend.
  */
-export async function fetchPatientHistory(patientId: string): Promise<HistoryEntry[]> {
+export async function fetchPatientHistory(
+  patientId: string,
+): Promise<HistoryEntry[]> {
   const base = getApiBase();
   const res = await fetch(`${base}/patient/${patientId}/history`);
   if (!res.ok) throw new Error("Failed to load patient history");
@@ -61,7 +61,9 @@ export type MedicationEntry = {
 /**
  * Fetches patient medications from the backend (OpenFDA-ready; description not yet implemented).
  */
-export async function fetchPatientMedications(patientId: string): Promise<MedicationEntry[]> {
+export async function fetchPatientMedications(
+  patientId: string,
+): Promise<MedicationEntry[]> {
   const base = getApiBase();
   const res = await fetch(`${base}/patient/${patientId}/medications`);
   if (!res.ok) throw new Error("Failed to load medications");
@@ -89,7 +91,7 @@ export type FamilyHistoryEntry = {
  * Fetches patient family history from the backend (main.py from sample_data).
  */
 export async function fetchPatientFamilyHistory(
-  patientId: string
+  patientId: string,
 ): Promise<FamilyHistoryEntry[]> {
   const base = getApiBase();
   const res = await fetch(`${base}/patient/${patientId}/family_history`);
@@ -100,7 +102,9 @@ export async function fetchPatientFamilyHistory(
 /**
  * Fetches potential contraindications from the backend (OpenFDA; description not yet implemented).
  */
-export async function fetchContraindications(patientId: string): Promise<ContraindicationEntry[]> {
+export async function fetchContraindications(
+  patientId: string,
+): Promise<ContraindicationEntry[]> {
   const base = getApiBase();
   const res = await fetch(`${base}/patient/${patientId}/contraindications`);
   if (!res.ok) throw new Error("Failed to load contraindications");
@@ -113,29 +117,47 @@ export async function fetchContraindications(patientId: string): Promise<Contrai
  * then calls the backend to generate an AI summary that considers all of these.
  * Returns the summary items array.
  */
-export async function fetchPatientSummary(patientId: string): Promise<SummaryItem[]> {
+export async function fetchPatientSummary(
+  patientId: string,
+): Promise<SummaryItem[]> {
   const base = getApiBase();
 
-  const [patientRes, historyRes, medsRes, familyRes, contraRes] = await Promise.all([
-    fetch(`${base}/patient/${patientId}`),
-    fetch(`${base}/patient/${patientId}/history`),
-    fetch(`${base}/patient/${patientId}/medications`),
-    fetch(`${base}/patient/${patientId}/family_history`),
-    fetch(`${base}/patient/${patientId}/contraindications`),
-  ]);
+  const [patientRes, historyRes, medsRes, familyRes, contraRes] =
+    await Promise.all([
+      fetch(`${base}/patient/${patientId}`),
+      fetch(`${base}/patient/${patientId}/history`),
+      fetch(`${base}/patient/${patientId}/medications`),
+      fetch(`${base}/patient/${patientId}/family_history`),
+      fetch(`${base}/patient/${patientId}/contraindications`),
+    ]);
 
   if (!patientRes.ok || !historyRes.ok || !medsRes.ok) {
     throw new Error("Failed to load patient data");
   }
 
   const patient = (await patientRes.json()) as { name: string };
-  const history = (await historyRes.json()) as Array<{ label: string; date?: string; items?: string[] }>;
-  const medications = (await medsRes.json()) as Array<{ label: string; items?: string[] }>;
+  const history = (await historyRes.json()) as Array<{
+    label: string;
+    date?: string;
+    items?: string[];
+  }>;
+  const medications = (await medsRes.json()) as Array<{
+    label: string;
+    items?: string[];
+  }>;
   const familyHistory = familyRes.ok
-    ? ((await familyRes.json()) as Array<{ label: string; relation?: string; conditions?: string[] }>)
+    ? ((await familyRes.json()) as Array<{
+        label: string;
+        relation?: string;
+        conditions?: string[];
+      }>)
     : [];
   const contraindications = contraRes.ok
-    ? ((await contraRes.json()) as Array<{ label: string; severity?: string; items?: string[] }>)
+    ? ((await contraRes.json()) as Array<{
+        label: string;
+        severity?: string;
+        items?: string[];
+      }>)
     : [];
 
   const summaryRes = await fetch(`${base}/patient/summary`, {
@@ -166,8 +188,14 @@ export async function fetchPatientSummary(patientId: string): Promise<SummaryIte
   });
 
   if (!summaryRes.ok) {
-    const err = await summaryRes.json().catch(() => ({ detail: summaryRes.statusText }));
-    throw new Error(typeof err.detail === "string" ? err.detail : "Failed to generate summary");
+    const err = await summaryRes
+      .json()
+      .catch(() => ({ detail: summaryRes.statusText }));
+    throw new Error(
+      typeof err.detail === "string"
+        ? err.detail
+        : "Failed to generate summary",
+    );
   }
 
   const data = (await summaryRes.json()) as SummaryItem[];
