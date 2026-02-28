@@ -1,20 +1,18 @@
 from dotenv import load_dotenv
 import os
-import requests
-
-# Load backend/.env before any module that uses GEMINI_API_KEY e.g. gemini
-_load_env = os.path.join(os.path.dirname(__file__), ".env")
-if os.path.isfile(_load_env):
-    load_dotenv(_load_env)
-
+from mangum import Mangum
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from openfda import search_drugs, get_drug_info
-from gemini import generate_text, filter_and_summarize_contraindications, summarize_contraindications_for_display
+from openfda import  get_drug_info
+from gemini import generate_text, filter_and_summarize_contraindications
 from sample_data import sample_data
+import asyncio
+from datetime import datetime, timezone
 
-
+_load_env = os.path.join(os.path.dirname(__file__), ".env")
+if os.path.isfile(_load_env):
+    load_dotenv(_load_env)
 
 
 app = FastAPI(
@@ -46,7 +44,7 @@ def _initials(name: str) -> str:
     if not parts:
         return "?"
     if len(parts) == 1:
-        return (parts[0][:2] or "?").upper()
+        return (parts[0][:2]).upper()
     return (parts[0][0] + parts[-1][0]).upper()
 
 
@@ -97,9 +95,6 @@ def get_patient_family_history(patient_id: str):
         return sample_data[patient_id].get("family_history", [])
     return []
 
-
-
-
 @app.get("/patient/{patient_id}/contraindications")
 async def get_contraindications(patient_id: str):
     """
@@ -119,7 +114,7 @@ async def get_contraindications(patient_id: str):
         f"- {f.get('label', '')} ({f.get('relation', '')}): {', '.join(f.get('conditions', []))}"
         for f in family
     )
-    medication_names = [m["label"] for m in medications]
+    medication_names = [m.get("label") for m in medications]
 
     raw_results = []
     for med in medications:
@@ -162,13 +157,13 @@ async def get_contraindications(patient_id: str):
     except Exception:
         results = raw_results
 
+    results = [
+        r for r in results
+        if r.get("description") != "No significant drug interaction risks for this patient."
+    ]
+
     return results
 
-
-
-
-import asyncio
-from datetime import datetime, timezone
 
 @app.post("/patient/summary")
 async def generate_patient_summary(request: SummaryRequest):
@@ -178,8 +173,8 @@ async def generate_patient_summary(request: SummaryRequest):
     Identifies follow-ups/visits due now and returns them bolded (**text**) in the summary.
     """
     now = datetime.now(timezone.utc)
-    current_date_time = now.strftime("%B %d, %Y")  # e.g. February 28, 2025
-    current_date_iso = now.strftime("%Y-%m-%d")    # for unambiguous parsing
+    current_date_time = now.strftime("%B %d, %Y") 
+    current_date_iso = now.strftime("%Y-%m-%d")  
 
     history_text = "\n".join(
         f"- {h['label']} ({h.get('date', '')}): {', '.join(h.get('items', []))}"
@@ -230,11 +225,6 @@ Potential Contraindications / Interactions:
 
     return [{"type": "diagnostic", "summary": summary}]
 
-
-
-
-
-
 @app.get("/")
 def root():
     return {"message": "Metricare API is running"}
@@ -245,5 +235,5 @@ def health():
 
 
 
-from mangum import Mangum
+
 handler = Mangum(app)

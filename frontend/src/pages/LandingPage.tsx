@@ -120,13 +120,47 @@ const tiles = [
 ];
 
 export default function LandingPage() {
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
   const [showBackToTop, setShowBackToTop] = useState(false);
+
+  useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener("resize", onResize, { passive: true });
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
 
   useEffect(() => {
     const onScroll = () => setShowBackToTop(window.scrollY > 400);
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  if (isMobile) {
+    return (
+      <div
+        className="min-h-screen w-full flex flex-col items-center justify-center bg-white px-8 text-center"
+        style={{ fontFamily: "'DM Sans', sans-serif" }}
+      >
+        <svg
+          className="w-14 h-14 text-gray-300 mb-6"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth={1.5}
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M9 17.25v1.007a3 3 0 01-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0115 18.257V17.25m6-12V15a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 15V5.25m18 0A2.25 2.25 0 0018.75 3H5.25A2.25 2.25 0 003 5.25m18 0H3"
+          />
+        </svg>
+        <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Desktop only</h1>
+        <p className="mt-3 text-gray-500 text-base leading-relaxed max-w-xs">
+          Metricare is designed for desktop use. Please open it on a larger screen.
+        </p>
+      </div>
+    );
+  }
 
   const scrollToTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
   return (
