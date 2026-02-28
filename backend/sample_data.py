@@ -358,7 +358,7 @@ sample_data = {
             {"type": "diagnostic", "label": "Laceration repair", "date": "Jun 2024", "items": ["Right forearm", "5 sutures", "Tdap current"]},
         ],
         "current_medications": [
-            {"type": "diagnostic", "label": "Ibuprofen", "conflicts": [], "items": ["400 mg PRN", "Knee pain"], "description": None},
+            {"type": "diagnostic", "label": "Acetaminophen", "conflicts": [], "items": ["500 mg PRN", "Knee pain"], "description": None},
         ],
         "family_history": [
             {"type": "diagnostic", "label": "Jose Mendez", "relation": "Father", "conditions": ["Hypertension", "GERD"]},
