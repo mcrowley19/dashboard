@@ -61,7 +61,7 @@ export default function PatientHistoryCard({
           history.map(({ label, date, items }, i) => (
             <div
               key={`${label}-${i}`}
-              className="flex gap-3 px-5 py-3 hover:bg-slate-50/70 transition-colors"
+              className="flex gap-3 px-5 py-3 transition-colors"
             >
               <div className="shrink-0 mt-1 w-2 h-2 rounded-full bg-blue-300 ring-2 ring-blue-100" />
               <div className="flex-1 min-w-0">
