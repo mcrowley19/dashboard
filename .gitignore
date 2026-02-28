@@ -11,3 +11,15 @@ dist/
 build/
 *.log
 *.egg-info/
+
+
+
+backend/Pipfile
+backend/Pipfile.lock
+
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+env/
+.env
