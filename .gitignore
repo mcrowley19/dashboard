@@ -1,2 +1,10 @@
 .vercel
 .env*.local
+node_modules/
+__pycache__/
+*.pyc
+.DS_Store
+dist/
+build/
+*.log
+*.egg-info/
