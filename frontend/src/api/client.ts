@@ -4,7 +4,7 @@
  */
 const API_BASE =
   (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/$/, "") ||
-  (import.meta.env.PROD ? "/api" : "http://localhost:8000");
+  (import.meta.env.PROD ? "/api" : "https://metricare.onrender.com");
 
 export function getApiBase(): string {
   return API_BASE;
