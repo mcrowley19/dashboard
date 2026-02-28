@@ -13,11 +13,6 @@ from pydantic import BaseModel
 from openfda import search_drugs, get_drug_info
 from gemini import generate_text, filter_contraindications, summarize_contraindications_for_display
 from sample_data import sample_data
-from fhir import (
-    FHIR_PATIENT_IDS,
-    get_fhir_patient_list,
-    get_patient_info as fhir_get_patient_info,
-)
 
 
 
@@ -57,35 +52,19 @@ def _initials(name: str) -> str:
 
 @app.get("/patients")
 def list_patients():
-    """Returns patients from sample_data and from FHIR (fhir.py) for the frontend."""
+    """Returns patients from sample_data only (regulated format)."""
     out = []
     for pid, p in sample_data.items():
         name = p.get("name") or "Unknown"
         dob = p.get("patientDOB") or ""
         out.append({"id": pid, "name": name, "dob": dob, "initials": _initials(name)})
-    out.extend(get_fhir_patient_list())
-    def _sort_key(item):
-        i = item["id"]
-        if i.isdigit():
-            return (0, int(i))
-        return (1, i)
-    out.sort(key=_sort_key)
+    out.sort(key=lambda item: item["id"])
     return out
 
 
 @app.get("/patient/{patient_id}")
 def get_patient(patient_id: str):
-    """Returns basic patient info from sample_data or FHIR when available; otherwise stub."""
-    if patient_id in FHIR_PATIENT_IDS:
-        try:
-            p = fhir_get_patient_info(patient_id)
-            return {
-                "name": p.get("name", "Unknown"),
-                "patientid": p.get("patientid", patient_id),
-                "patientDOB": p.get("patientDOB", ""),
-            }
-        except Exception:
-            return {"name": "Unknown", "patientid": patient_id, "patientDOB": ""}
+    """Returns basic patient info from sample_data only; otherwise stub."""
     if patient_id in sample_data:
         p = sample_data[patient_id]
         return {
@@ -99,13 +78,7 @@ def get_patient(patient_id: str):
 
 @app.get("/patient/{patient_id}/history")
 def get_patient_history(patient_id: str):
-    """Returns the patient's clinical history from sample_data or FHIR when available."""
-    if patient_id in FHIR_PATIENT_IDS:
-        try:
-            p = fhir_get_patient_info(patient_id)
-            return p.get("patient_history", [])
-        except Exception:
-            return []
+    """Returns the patient's clinical history from sample_data only."""
     if patient_id in sample_data:
         return sample_data[patient_id].get("patient_history", [])
     return []
@@ -114,13 +87,7 @@ def get_patient_history(patient_id: str):
 
 @app.get("/patient/{patient_id}/medications")
 def get_patient_medications(patient_id: str):
-    """Returns the patient's current medications from sample_data or FHIR when available."""
-    if patient_id in FHIR_PATIENT_IDS:
-        try:
-            p = fhir_get_patient_info(patient_id)
-            return p.get("current_medications", [])
-        except Exception:
-            return []
+    """Returns the patient's current medications from sample_data only."""
     if patient_id in sample_data:
         return sample_data[patient_id].get("current_medications", [])
     return []
@@ -130,13 +97,7 @@ def get_patient_medications(patient_id: str):
 
 @app.get("/patient/{patient_id}/family_history")
 def get_patient_family_history(patient_id: str):
-    """Returns the patient's family history from sample_data or FHIR when available."""
-    if patient_id in FHIR_PATIENT_IDS:
-        try:
-            p = fhir_get_patient_info(patient_id)
-            return p.get("family_history", [])
-        except Exception:
-            return []
+    """Returns the patient's family history from sample_data only."""
     if patient_id in sample_data:
         return sample_data[patient_id].get("family_history", [])
     return []

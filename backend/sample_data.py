@@ -72,10 +72,22 @@ sample_data = {
         "family_history": [
         {
             "type": "diagnostic",
-            "label": "Oscar Wilde",
+            "label": "Father",
             "relation": "Father",
-            "conditions": ["Heart disease", "Cancer", "plague"],
-        }
+            "conditions": ["Hypertension", "Type 2 diabetes", "Myocardial infarction (age 58)"],
+        },
+        {
+            "type": "diagnostic",
+            "label": "Mother",
+            "relation": "Mother",
+            "conditions": ["Hypothyroidism", "Osteoporosis"],
+        },
+        {
+            "type": "diagnostic",
+            "label": "Paternal grandfather",
+            "relation": "Paternal grandfather",
+            "conditions": ["Stroke", "Atrial fibrillation"],
+        },
     ]
     },
     "BIO-20240308":{
@@ -151,10 +163,22 @@ sample_data = {
         "family_history": [
         {
             "type": "diagnostic",
-            "label": "Oscar Wilde",
+            "label": "Mother",
+            "relation": "Mother",
+            "conditions": ["Breast cancer (age 52)", "Hypertension"],
+        },
+        {
+            "type": "diagnostic",
+            "label": "Father",
             "relation": "Father",
-            "conditions": ["Heart disease", "Cancer", "plague"],
-        }
+            "conditions": ["Type 2 diabetes", "Hyperlipidemia"],
+        },
+        {
+            "type": "diagnostic",
+            "label": "Maternal grandmother",
+            "relation": "Maternal grandmother",
+            "conditions": ["Osteoporosis", "Rheumatoid arthritis"],
+        },
     ]
     },
     "BIO-20240521":{
@@ -230,10 +254,22 @@ sample_data = {
         "family_history": [
         {
             "type": "diagnostic",
-            "label": "Oscar Wilde",
+            "label": "Father",
             "relation": "Father",
-            "conditions": ["Heart disease", "Cancer", "plague"],
-        }
+            "conditions": ["Coronary artery disease", "Hypertension", "Stroke (age 62)"],
+        },
+        {
+            "type": "diagnostic",
+            "label": "Mother",
+            "relation": "Mother",
+            "conditions": ["Type 2 diabetes", "Chronic kidney disease stage 3"],
+        },
+        {
+            "type": "diagnostic",
+            "label": "Brother",
+            "relation": "Brother",
+            "conditions": ["Hypertension", "Hyperlipidemia"],
+        },
     ]
     }
 
