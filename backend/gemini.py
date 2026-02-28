@@ -9,8 +9,8 @@ GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
 if GEMINI_API_KEY:
     genai.configure(api_key=GEMINI_API_KEY)
 
-# Use Gemini 3 Flash preview (override with GEMINI_MODEL env). If you get model errors, set GEMINI_MODEL=gemini-2.5-flash
-GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-3-flash-preview")
+# Use Gemini 2.5 Flash Lite (override with GEMINI_MODEL env). If you get model errors, set GEMINI_MODEL=gemini-2.5-flash
+GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash-lite")
 
 
 def generate_text(prompt: str, temperature: float = 0.7) -> str:
