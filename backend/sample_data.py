@@ -353,13 +353,11 @@ sample_data = {
         "patientid": "BIO-20241005",
         "patientDOB": "September 19, 1985",
         "patient_history": [
-            {"type": "diagnostic", "label": "Knee pain evaluation", "date": "Jan 2025", "items": ["Patellofemoral syndrome", "PT prescribed", "NSAIDs as needed"]},
-            {"type": "diagnostic", "label": "Sports physical", "date": "Aug 2024", "items": ["Cleared for soccer", "BP 118/76", "No restrictions"]},
-            {"type": "diagnostic", "label": "Laceration repair", "date": "Jun 2024", "items": ["Right forearm", "5 sutures", "Tdap current"]},
+            {"type": "diagnostic", "label": "Annual physical", "date": "Jan 2025", "items": ["Labs within normal limits", "BP 118/76", "Weight stable", "No chronic conditions", "Next visit in 1 year"]},
+            {"type": "diagnostic", "label": "Sports physical", "date": "Aug 2024", "items": ["Cleared for soccer", "No restrictions", "Vision and hearing normal"]},
+            {"type": "diagnostic", "label": "Annual physical", "date": "Mar 2024", "items": ["Routine exam unremarkable", "CBC, metabolic panel normal", "No follow-up needed"]},
         ],
-        "current_medications": [
-            {"type": "diagnostic", "label": "Acetaminophen", "conflicts": [], "items": ["500 mg PRN", "Knee pain"], "description": None},
-        ],
+        "current_medications": [],
         "family_history": [
             {"type": "diagnostic", "label": "Jose Mendez", "relation": "Father", "conditions": ["Hypertension", "GERD"]},
             {"type": "diagnostic", "label": "Rosa Mendez", "relation": "Mother", "conditions": ["Type 2 diabetes"]},
